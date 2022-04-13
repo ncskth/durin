@@ -10,4 +10,4 @@ with Durin(host, port) as durin:
     while True:
         obs = durin.read()
         # ...
-        durin.act(...)
+        durin(...)
