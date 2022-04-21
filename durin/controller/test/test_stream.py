@@ -36,8 +36,7 @@ def test_handshake():
     b.stop_stream()
     sleep(0.2)
     assert q.get() == "stop"
-
-    print(serv.is_streaming)
+    
     serv.close()
     proc.terminate()
     proc.join()

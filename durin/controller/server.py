@@ -30,14 +30,15 @@ class AEStreamer(Streamer):
     def start_stream(self, host: str, port: int):
         if self.aestream is not None:
             self.aestream.terminate()
-        else:
-            command = f"aestream input {self.camera_string} output spif {host} {port}"
-            self.aestream = subprocess.Popen(command.split(" "))
-            logging.info(f"Sending DVS to {host}:{port}")
+
+        command = f"aestream input {self.camera_string} output udp {host} {port}"
+        self.aestream = subprocess.Popen(command.split(" "))
+        logging.info(f"Sending DVS to {host}:{port}")
 
     def stop_stream(self):
         if self.aestream:
             self.aestream.terminate()
+            self.aestream = None
 
 
 class DVSServer:
@@ -45,23 +46,34 @@ class DVSServer:
         self, port: int, buffer_size: int = 32, streamer: Optional[Streamer] = None
     ) -> None:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        logging.debug(f"Listening to 0.0.0.0 {port}")
         self.sock.bind(("0.0.0.0", port))
         self.sock.listen(1)
         self.buffer_size = buffer_size
         self.streamer = streamer if streamer is not None else AEStreamer()
         self.is_streaming = False
+        self.is_connected = False
 
     def listen(self):
         self.is_streaming = True
-        connection, address = self.sock.accept()
         while self.is_streaming:
-            msg = connection.recv(self.buffer_size)
-            if msg:
-                self._parse_command(msg)
+            connection, address = self.sock.accept()
+            logging.debug("New client connection established")
+            self.is_connected = True
+            self._client_loop(connection)
 
     def close(self):
         self.is_streaming = False
         self.sock.close()
+
+    def _client_loop(self, connection):
+        try:
+            while self.is_connected:
+                msg = connection.recv(self.buffer_size)
+                if msg:
+                    self._parse_command(msg)
+        except ConnectionResetError:
+            pass
 
     def _parse_command(self, data):
         if data[0] == 0:  # Start streaming
@@ -72,8 +84,13 @@ class DVSServer:
         else:  # Stop streaming
             logging.debug(f"Terminating streaming")
             self.streamer.stop_stream()
+            self.is_connected = False
 
 
 if __name__ == "__main__":
+    logging.getLogger().setLevel(logging.DEBUG)
     server = DVSServer(3000)
-    server.listen()
+    try:
+        server.listen()
+    finally:
+        server.close()
