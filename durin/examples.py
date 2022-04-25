@@ -1,12 +1,13 @@
 import time
 import pdb
+import socket
 
 from dataclasses import dataclass
 from typing import List, Optional
 from actuator import *
 from common import *
 
-T_WAIT = 1
+T_WAIT = 0.1
 def example_moving(durin):
 
 
@@ -20,7 +21,7 @@ def example_moving(durin):
             # Move Durin using robcentric command
             (m1, m2, m3, m4) = (-5, 0, 1, 9)
             print(f"move_wheels {m1} {m2} {m3} {m4}")
-            reply = durin(MoveWheels(-1, 2, -3, 5))
+            reply = durin(MoveWheels(m1, m2, m3, m4))
             print(reply)
             time.sleep(T_WAIT)
 
@@ -75,11 +76,15 @@ def example_polling(durin):
 
 
 def example_streaming(durin):      
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+
+            ip_address = s.getsockname()[0]
+            port_udp = 4300
+            period = 500
 
             # Activating/deactivating continuous streaming of sensory data on UDP
-            reply = durin(StreamOn('127.0.0.1', 4300, 2000))
-            time.sleep(2.5)
-            reply = durin(StreamOff())
+            reply = durin(StreamOn(ip_address, port_udp, period))
             count = 0
             while count < 10:
                 
@@ -100,17 +105,4 @@ def example_streaming(durin):
 
             print("Waiting some time ... ")
             time.sleep(2)
-
-
-            # Activating/deactivating continuous streaming of sensory data on UDP
-            reply = durin(StreamOn('127.0.0.1', 4600, 500))
-            time.sleep(2.5)
-            count = 0
-            while count < 10:
-                
-
-                data = durin.sense()
-                count += 1
-                time.sleep(0.1)
-
             reply = durin(StreamOff())

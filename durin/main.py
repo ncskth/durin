@@ -27,6 +27,7 @@ if __name__ == "__main__":
 
         elif args.mode == "brain":
 
+            pdb.set_trace()
             example_moving(durin)
             example_polling(durin)
             example_streaming(durin)

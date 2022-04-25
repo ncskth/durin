@@ -26,9 +26,8 @@ class PowerOff(Command):
         self.cmd_id = 1
 
     def encode(self):
-        data = bytearray([0] * 2)
+        data = bytearray([0] * 1)
         data[0] = self.cmd_id
-        data[1] = 1 # id + byte_count
         
         return data
 
@@ -42,12 +41,11 @@ class MoveRobcentric(Command):
         self.rot = int(rot)
 
     def encode(self):
-        data = bytearray([0] * 8)
+        data = bytearray([0] * 7)
         data[0] = self.cmd_id
-        data[1] = 6 # id + byte_count + 3*2
-        data[2:4] = bytearray(struct.pack("<h", self.vel_x)) #short (int16) little endian
-        data[4:6] = bytearray(struct.pack("<h", self.vel_y)) #short (int16) little endian
-        data[6:8] = bytearray(struct.pack("<h", self.rot)) #short (int16) little endian
+        data[1:3] = bytearray(struct.pack("<h", self.vel_x)) #short (int16) little endian
+        data[3:5] = bytearray(struct.pack("<h", self.vel_y)) #short (int16) little endian
+        data[5:7] = bytearray(struct.pack("<h", self.rot)) #short (int16) little endian
         
         return data
 
@@ -62,13 +60,12 @@ class MoveWheels(Command):
         self.m4 = int(m4)
 
     def encode(self):
-        data = bytearray([0] * 10)
+        data = bytearray([0] * 9)
         data[0] = self.cmd_id
-        data[1] = 8 # id + byte_count + 4*2
-        data[2:4] = bytearray(struct.pack("<h", self.m1)) #short (int16) little endian
-        data[4:6] = bytearray(struct.pack("<h", self.m2)) #short (int16) little endian
-        data[6:8] = bytearray(struct.pack("<h", self.m3)) #short (int16) little endian
-        data[8:10] = bytearray(struct.pack("<h", self.m4)) #short (int16) little endian
+        data[1:3] = bytearray(struct.pack("<h", self.m1)) #short (int16) little endian
+        data[3:5] = bytearray(struct.pack("<h", self.m2)) #short (int16) little endian
+        data[5:7] = bytearray(struct.pack("<h", self.m3)) #short (int16) little endian
+        data[7:9] = bytearray(struct.pack("<h", self.m4)) #short (int16) little endian
         
         return data
 
@@ -79,9 +76,8 @@ class PollAll(Command):
         self.cmd_id = 16
 
     def encode(self):
-        data = bytearray([0] * 2)
+        data = bytearray([0] * 1)
         data[0] = self.cmd_id
-        data[1] = 1 # id + byte_count
         
         return data
 
@@ -93,10 +89,9 @@ class PollSensor(Command):
         self.sensor_id = int(sensor_id) 
 
     def encode(self):
-        data = bytearray([0] * 3)
+        data = bytearray([0] * 2)
         data[0] = self.cmd_id
-        data[1] = 3 # id + byte_count + 4*2
-        data[2:3] = self.sensor_id.to_bytes(1, 'little') # integer (uint8) little endian
+        data[1:2] = self.sensor_id.to_bytes(1, 'little') # integer (uint8) little endian
         
         return data
 
@@ -113,15 +108,16 @@ class StreamOn(Command):
         host = self.host.split('.')
         byte_count = len(host)+2
 
-        data = bytearray([0] * (1+byte_count))
+        data = bytearray([0] * 9)
         data[0] = self.cmd_id
-        data[1] = 10 # id + byte_count + 4 (host) + 2 (port) +2 (period)
-        data[2] = int(host[0])
-        data[3] = int(host[1])
-        data[4] = int(host[2])
-        data[5] = int(host[3])
-        data[6:8] = self.port.to_bytes(2, 'little')
-        data[8:10] = self.period.to_bytes(2, 'little')
+        data[1] = int(host[0])
+        data[2] = int(host[1])
+        data[3] = int(host[2])
+        data[4] = int(host[3])
+        data[5:7] = self.port.to_bytes(2, 'little')
+        data[7:9] = self.period.to_bytes(2, 'little')
+
+
         
         return data
 
@@ -132,9 +128,8 @@ class StreamOff(Command):
         self.cmd_id = 19
 
     def encode(self):
-        data = bytearray([0] * 2)
+        data = bytearray([0] * 1)
         data[0] = self.cmd_id
-        data[1] = 1 # id + byte_count
         
         return data
 
@@ -190,7 +185,7 @@ class DurinActuator():
             return reply
 
         if type(action) == StreamOn:
-            self.udp_link.start_com((action.host, action.port))  
+            self.udp_link.start_com((action.host, action.port))
             
         if type(action) == StreamOff: 
             self.udp_link.stop_com()
@@ -199,9 +194,4 @@ class DurinActuator():
         _ , reply = decode(buffer)
         return reply
 
-            
-                
-
-    def write(self, action):
-        self.tcp_link.send(action)
 

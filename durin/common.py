@@ -63,7 +63,7 @@ def decode(buffer):
     if int(sensor_id) == SENSORS["misc"]:
         charge = int.from_bytes(buffer[1:2], "little")
         voltage = int.from_bytes(buffer[2:4], "little")
-        imu =np.frombuffer(buffer, dtype='<f', offset=4, count=9).reshape((3,3))
+        imu =np.frombuffer(buffer, dtype='<h', offset=4, count=9).reshape((3,3))
         reply = (charge, voltage, imu)
 
     # Decoding UWB Sensors

@@ -43,7 +43,7 @@ class UDPLink:
         self.thread = multiprocessing.Process(target=self._loop_buffer)
 
     def start_com(self, address):
-        print("Start UDP reception")
+        print("Starting UDP reception")
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(address)
@@ -57,6 +57,7 @@ class UDPLink:
             try:
                 buffer, _ = self.socket.recvfrom(512)
                 sensor_id, reply = decode(buffer)
+                # print(reply)
                 self.buffer.put((sensor_id, reply), block=False)
             except:
                 print("Problem receiving sensory data")
@@ -66,7 +67,8 @@ class UDPLink:
 
     # get data from buffer
     def get(self):
-        return self.buffer.get(block=False)
+        data = self.buffer.get(block=True)
+        return data
 
     def stop_com(self):
         self.is_buffering = False
