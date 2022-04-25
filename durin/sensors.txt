@@ -1,3 +1,6 @@
-128 tof
+128 tof_a
+129 tof_b
+130 tof_c
+131 tof_d
 132 misc
 133 uwb

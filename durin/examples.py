@@ -3,8 +3,8 @@ import pdb
 
 from dataclasses import dataclass
 from typing import List, Optional
-from durin import Durin
 from actuator import *
+from common import *
 
 T_WAIT = 1
 def example_moving(durin):
@@ -39,37 +39,37 @@ def example_polling(durin):
 
             # Get sensory data from sensor 128
             print("Polling ToF[0:1]:")
-            reply = durin(PollSensor(128))
+            reply = durin(PollSensor(SENSORS["tof_a"]))
             print(reply)
             time.sleep(T_WAIT)
 
             # Get sensory data from sensor 129
             print("Polling ToF[2:3]")
-            reply = durin(PollSensor(129))
+            reply = durin(PollSensor(SENSORS["tof_b"]))
             print(reply)
             time.sleep(T_WAIT)
 
             # Get sensory data from sensor 130
             print("Polling ToF[4:5]")
-            reply = durin(PollSensor(130))
+            reply = durin(PollSensor(SENSORS["tof_c"]))
             print(reply)
             time.sleep(T_WAIT)
 
             # Get sensory data from sensor 131
             print("Polling ToF[6:7]")
-            reply = durin(PollSensor(131))
+            reply = durin(PollSensor(SENSORS["tof_d"]))
             print(reply)
             time.sleep(T_WAIT)
 
             # Get sensory data from sensor 132
             print("Polling BatteryCharge+Voltage) + IMU:")
-            reply = durin(PollSensor(132))
+            reply = durin(PollSensor(SENSORS["misc"]))
             print(reply)
             time.sleep(T_WAIT)
 
             # Get sensory data from sensor 133
             print("Polling UWB")
-            reply = durin(PollSensor(133))
+            reply = durin(PollSensor(SENSORS["uwb"]))
             print(reply)
             time.sleep(T_WAIT)
 

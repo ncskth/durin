@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import ByteString, Callable, Generic, Tuple, TypeVar
 from network import UDPLink
+from common import *
 
 import torch
 import numpy as np
@@ -46,14 +47,14 @@ class DurinSensor(Sensor[Observation]):
 
     def read(self) -> Observation:
         (sensor_id, data) = self.link.get()
-        if sensor_id >= 128 and sensor_id <= 131:
-            idx = sensor_id - 128
+        if sensor_id >= SENSORS["tof_a"] and sensor_id <= SENSORS["tof_d"]:
+            idx = sensor_id - SENSORS["tof_a"]
             self.tof[:,idx*16:idx*16+16] = data
-        if sensor_id == 132:
+        if sensor_id == SENSORS["misc"]:
             self.charge = data[0]
             self.voltage = data[1]
             self.imu = data[2]
-        if sensor_id == 133:
+        if sensor_id == SENSORS["uwb"]:
             self.uwb = data
 
         return Observation(self.tof, (self.charge, self.voltage), self.imu, self.uwb)
