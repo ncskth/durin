@@ -81,9 +81,12 @@ def example_streaming(durin, px_np=[], duration=10):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
 
+    
     ip_address = s.getsockname()[0]
     port_udp = 4300
-    period = 100
+    period = 10
+
+    print(f"UDP on {ip_address}:{port_udp} ... {period}")
 
     # Activating/deactivating continuous streaming of sensory data on UDP
     reply = durin(StreamOn(ip_address, port_udp, period))
@@ -96,7 +99,7 @@ def example_streaming(durin, px_np=[], duration=10):
         
         (obs, dvs) = durin.sense()
         if len(px_np) > 0:
-            px_np[:,:]= np.transpose(obs.tof)
+            px_np[:,:]= obs.tof
         count += 1
 
 

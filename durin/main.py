@@ -34,10 +34,10 @@ if __name__ == "__main__":
         elif args.mode == "brain":
 
             pdb.set_trace()
+            example_streaming(durin, px_np, 10)
             example_moving(durin)
             example_polling(durin)
             example_streaming(durin)
-            example_streaming(durin, px_np, 10)
 
                 
         else:

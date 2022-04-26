@@ -38,8 +38,9 @@ class UDPLink:
     def __init__(self, package_size: int = 1024, buffer_size: int = 1024):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.is_buffering = False 
+        self.buffer_size = buffer_size
         self.package_size = package_size
-        self.buffer = multiprocessing.Queue(buffer_size)
+        self.buffer = multiprocessing.Queue(self.buffer_size)
         self.thread = multiprocessing.Process(target=self._loop_buffer)
 
     def start_com(self, address):
@@ -54,28 +55,28 @@ class UDPLink:
         count = 0
 
         while True:
-            try:
-                buffer, _ = self.socket.recvfrom(512)
-                sensor_id, reply = decode(buffer)
-                # print(reply)
-                self.buffer.put((sensor_id, reply), block=False)
-            except:
-                print("Problem receiving sensory data")
-                break
+            buffer, _ = self.socket.recvfrom(512)
+            sensor_id, reply = decode(buffer)
+            self.buffer.put((sensor_id, reply), block=False)
             count += 1
             
 
     # get data from buffer
     def get(self):
-        data = self.buffer.get(block=True)
-        return data
+        while not self.buffer.empty():
+            data = self.buffer.get(block=False)
+            return data
+        return (0, [])
 
     def stop_com(self):
         self.is_buffering = False
+        self.buffer.close()
+        self.buffer = multiprocessing.Queue(self.buffer_size)
         self.socket.close()
         self.thread.terminate()
         self.thread.join()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.thread = multiprocessing.Process(target=self._loop_buffer)
+        
 
 

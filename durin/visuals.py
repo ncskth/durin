@@ -1,58 +1,34 @@
 
-
-import pygame
-from pygame.locals import *
-import sys
 import multiprocessing 
 import numpy as np
 
 TOF_WIDTH = 8*8
 TOF_HEIGHT = 8
 
-class Viewer:
-    def __init__(self, display_size, px_np):
-        self.display_size = display_size
-        self.px_np = px_np
-    
-    # def set_title(self, title):
-    #     pygame.display.set_caption(title)
-    
-    def start(self):
-        pygame.init()
-        scaled_d_size = (self.display_size[0]*20, self.display_size[1]*20)
-        display = pygame.display.set_mode(scaled_d_size)
-        running = True
-        while running:
 
-            Z = self.update()
-            surf = pygame.surfarray.make_surface(Z)
-            surf = pygame.transform.scale(surf, scaled_d_size)
-
-            display.blit(surf, (0, 0))
-
-            pygame.display.update()
-            # time.sleep(1/25)
-
-        pygame.quit()
-
-    def update(self):
-        
-        # image = 255*np.random.randint(0,2,(8*8,8,3)) #
-        image = np.zeros((self.px_np.shape[0],self.px_np.shape[1],3))
-        image[:,:,0] = self.px_np
-
-        return image.astype('uint8')
+import cv2
 
 def vis_process(px_np):
 
-    viewer = Viewer((TOF_WIDTH, TOF_HEIGHT), px_np)
-    viewer.start()
+    tof_px_mat = np.zeros((TOF_HEIGHT,TOF_WIDTH+7,3))
+    for i in range(7):
+        tof_px_mat[:,i+i*8+8,0:3] = np.ones((8,3))*255
+
+    
+    while True:
+        for i in range(8):
+            tof_px_mat[:,i+i*8:i+i*8+8,2]= px_np[:,i*8:i*8+8]/(2**16-1)
+        im_final = cv2.resize(tof_px_mat,(1280, int(1280*TOF_HEIGHT/(TOF_WIDTH+7))), interpolation = cv2.INTER_NEAREST)
+        cv2.imshow("ToF Sensors", im_final)
+        cv2.waitKey(1) 
+
+
 
 def launch_visual():
 
     manager = multiprocessing.Manager()
-    px_mp = multiprocessing.Array('I', int(np.prod((TOF_WIDTH, TOF_HEIGHT))), lock=multiprocessing.Lock())
-    px_np = np.frombuffer(px_mp.get_obj(), dtype='I').reshape((TOF_WIDTH, TOF_HEIGHT))
+    px_mp = multiprocessing.Array('I', int(np.prod((TOF_HEIGHT, TOF_WIDTH))), lock=multiprocessing.Lock())
+    px_np = np.frombuffer(px_mp.get_obj(), dtype='I').reshape((TOF_HEIGHT, TOF_WIDTH))
 
     p_visual = multiprocessing.Process(target=vis_process, args=(px_np,))
 

@@ -55,8 +55,8 @@ def decode(buffer):
     # Decoding ToF Sensors
     if int(sensor_id) >= SENSORS["tof_a"] and int(sensor_id) <= SENSORS["tof_d"]:
         tof = np.zeros((8,16))
-        tof[:,0:8] = np.frombuffer(buffer, dtype='<h', offset=1, count=64).reshape((8,8))
-        tof[:,8:16] = np.frombuffer(buffer, dtype='<h', offset=1+64*2, count=64).reshape((8,8))
+        tof[:,0:8] = np.frombuffer(buffer, dtype='<H', offset=1, count=64).reshape((8,8))
+        tof[:,8:16] = np.frombuffer(buffer, dtype='<H', offset=1+64*2, count=64).reshape((8,8))
         reply = tof
 
     # Decoding Miscelaneous Sensors
