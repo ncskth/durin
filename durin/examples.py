@@ -84,7 +84,7 @@ def example_streaming(durin, px_np=[], duration=10):
     
     ip_address = s.getsockname()[0]
     port_udp = 4300
-    period = 10
+    period = 100
 
     print(f"UDP on {ip_address}:{port_udp} ... {period}")
 
@@ -100,6 +100,9 @@ def example_streaming(durin, px_np=[], duration=10):
         (obs, dvs) = durin.sense()
         if len(px_np) > 0:
             px_np[:,:]= obs.tof
+        
+        # idx = 0
+        # print(obs.tof[:,idx*8:idx*8+8])
         count += 1
 
 
