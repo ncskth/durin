@@ -15,7 +15,7 @@ class Durin():
         self.udp_link = UDPLink()
         self.sensor = DurinSensor(self.udp_link)
         self.actuator = DurinActuator(self.tcp_link, self.udp_link) 
-        self.dvs = DVSSensor((128, 128), port + 1) 
+        self.dvs = DVSSensor((128, 128), port_tcp + 1) 
 
     def __enter__(self):
         self.tcp_link.start_com()
