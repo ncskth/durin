@@ -18,9 +18,6 @@ class TCPLink:
     # Send Command to Durin and wait for response
     def send(self, command: ByteString):
         self.socket.send(command)
-        # For PollAll we need to 'recv' more than once
-        # @TODO: create a list of 'buffers'
-        # 'decode' in 'common' needs to account for list of 'buffers' instead of a single buffer
         buffer = self.socket.recv(1024)
 
         return buffer

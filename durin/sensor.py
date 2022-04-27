@@ -6,7 +6,7 @@ from common import *
 
 import torch
 import numpy as np
-# import aestream
+import aestream
 
 
 T = TypeVar("T")
@@ -28,12 +28,12 @@ class Sensor(ABC, Generic[T]):
         pass
 
 
-# class DVSSensor(Sensor[torch.Tensor]):
-#     def __init__(self, shape: Tuple[int, int], port: int):
-#         self.source = aestream.UDPInput(shape, port)
+class DVSSensor(Sensor[torch.Tensor]):
+    def __init__(self, shape: Tuple[int, int], port: int):
+        self.source = aestream.UDPInput(shape, port)
 
-#     def read(self) -> torch.Tensor:
-#         return self.source.read()
+    def read(self) -> torch.Tensor:
+        return self.source.read()
 
 
 class DurinSensor(Sensor[Observation]):

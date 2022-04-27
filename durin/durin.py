@@ -1,6 +1,6 @@
 from typing import Tuple
 from actuator import DurinActuator
-from sensor import DurinSensor, Observation #DVSSensor
+from sensor import DurinSensor, Observation, DVSSensor
 from network import TCPLink, UDPLink
 from common import *
 from cli import *
@@ -15,7 +15,7 @@ class Durin():
         self.udp_link = UDPLink()
         self.sensor = DurinSensor(self.udp_link)
         self.actuator = DurinActuator(self.tcp_link, self.udp_link) 
-        # self.dvs = DVSSensor((128, 128), port + 1) @TODO: uncomment
+        self.dvs = DVSSensor((128, 128), port + 1) 
 
     def __enter__(self):
         self.tcp_link.start_com()
@@ -30,7 +30,7 @@ class Durin():
 
     def sense(self) -> Tuple[Observation, torch.Tensor]:
         durin = self.sensor.read()
-        dvs = 1 # self.dvs.read() @TODO: uncomment
+        dvs = self.dvs.read()
         return (durin, dvs)
 
 
