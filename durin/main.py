@@ -20,7 +20,7 @@ if __name__ == "__main__":
     p_visual.start()
     
 
-    with Durin(args.host, args.tcp) as durin:
+    with Durin(args.host, int(args.tcp)) as durin:
 
         if args.mode == "cli":
             while True:
