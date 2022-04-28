@@ -1,4 +1,5 @@
 from ctypes import *
+import socket
 import numpy as np
 
 
@@ -86,3 +87,18 @@ def decode(buffer):
         reply = uwb
 
     return sensor_id, reply
+
+
+def get_ip():
+    # Thanks to https://stackoverflow.com/a/28950776/999865
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        # doesn't even have to be reachable
+        s.connect(("10.255.255.255", 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = "127.0.0.1"
+    finally:
+        s.close()
+    return IP

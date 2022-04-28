@@ -7,8 +7,8 @@ from durin.visuals import launch_visual
 
 
 if __name__ == "__main__":
-    
-    with Durin("localhost") as durin:
+
+    with Durin("localhost", "172.16.223.239") as durin:
         # This starts the visualization of ToF sensor data
         p_visual, px_np = launch_visual()
         p_visual.start()
@@ -16,9 +16,9 @@ if __name__ == "__main__":
         while True:
             (obs, dvs) = durin.sense()
             if len(px_np) > 0:
-                px_np[:,:]= obs.tof
-
+                px_np[:, :] = obs.tof
 
             durin(PollSensor(SENSORS["misc"]))
+            print("DVS: ", dvs.sum())
 
             time.sleep(0.01)

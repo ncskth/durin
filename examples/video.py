@@ -1,6 +1,7 @@
 import logging
 import time
 
+import matplotlib
 import matplotlib.pyplot as plt
 
 import torch
@@ -14,7 +15,7 @@ from durin.visuals import launch_visual
 
 # Initialize our canvas
 fig, ax = plt.subplots()
-image = ax.imshow(torch.zeros(260, 346), cmap="gray", vmin=0, vmax=1)
+image = ax.imshow(torch.zeros(480, 640), cmap="gray", vmin=0, vmax=1)
 plt.show(block=False)
 plt.pause(0.1)
 bg = fig.canvas.copy_from_bbox(fig.bbox)

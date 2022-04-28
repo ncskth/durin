@@ -1,19 +1,10 @@
+from time import sleep
 from durin.actuator import *
-from durin.network import TCPLink
+from durin.network import DVSClient, TCPLink
+from durin.sensor import DVSSensor
 
-t = TCPLink("127.0.0.1", 2300)
-t.start_com()
-
-reply = t.send(MoveRobcentric(1, 2, 3).encode())
-print(reply)
-
-reply = t.send(MoveRobcentric(1, 2, 3).encode())
-print(reply)
-
-reply = t.send(MoveRobcentric(1, 2, 3).encode())
-print(reply)
-
-reply = t.send(MoveRobcentric(1, 2, 3).encode())
-print(reply)
-
-t.stop_com()
+#c = DVSClient("172.16.223.239", 3000)
+s = DVSSensor((640, 480), "cpu", 4301)
+while True:
+    print(s.read().sum())
+    sleep(0.1)

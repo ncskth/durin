@@ -37,7 +37,7 @@ class Durin:
         if stream_command is not None:
             self.stream_command = stream_command
         else:
-            response_ip = socket.gethostbyname(socket.gethostname())
+            response_ip = get_ip()
             self.stream_command = StreamOn(response_ip, 4300, 50)
 
     def __enter__(self):
@@ -52,7 +52,8 @@ class Durin:
 
     def __exit__(self, e, b, t):
         self.tcp_link.stop_com()
-        self.udp_link(StreamOff())
+        self.udp_link.stop_com()
+        self.dvs_client.stop_stream()
         if self.spawn_cli:
             self.cli_process.terminate()
             self.cli_process.join()
