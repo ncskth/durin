@@ -1,21 +1,21 @@
 from typing import Tuple
-from actuator import DurinActuator
-from sensor import DurinSensor, Observation, DVSSensor
-from network import TCPLink, UDPLink
-from common import *
-from cli import *
+
+from .actuator import DurinActuator
+from .sensor import DurinSensor, Observation, DVSSensor
+from .network import TCPLink, UDPLink
+from .common import *
+from .cli import *
 
 import torch
 
 
-class Durin():    
-
+class Durin:
     def __init__(self, host, port_tcp):
         self.tcp_link = TCPLink(host, port_tcp)
         self.udp_link = UDPLink()
         self.sensor = DurinSensor(self.udp_link)
-        self.actuator = DurinActuator(self.tcp_link, self.udp_link) 
-        self.dvs = DVSSensor((128, 128), port_tcp + 1) 
+        self.actuator = DurinActuator(self.tcp_link, self.udp_link)
+        self.dvs = DVSSensor((128, 128), port_tcp + 1)
 
     def __enter__(self):
         self.tcp_link.start_com()
@@ -32,5 +32,3 @@ class Durin():
         durin = self.sensor.read()
         dvs = self.dvs.read()
         return (durin, dvs)
-
-

@@ -45,7 +45,7 @@ def available_sensors():
 
     return sensorsdict
 
-SENSORS = available_sensors()
+# SENSORS = available_sensors()
 
 def decode(buffer):
 

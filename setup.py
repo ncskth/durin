@@ -12,4 +12,5 @@ setup(
     maintainer="Jens E. Pedersen",
     maintainer_email="jeped@kth.se",
     extras_require={"aestream": ["aestream"]},
+    scripts=["bin/durin"]
 )

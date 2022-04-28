@@ -1,12 +1,13 @@
 import socket
 import multiprocessing
 from typing import ByteString
-from common import *
+
+from .common import *
+
 
 class TCPLink:
-    """
-    
-    """
+    """ """
+
     def __init__(self, host: str, port: str):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.address = (host, int(port))
@@ -22,11 +23,11 @@ class TCPLink:
 
         return buffer
 
-
     def stop_com(self):
         print(f"TCP communication stopped with {self.address}")
         self.socket.close()
-        
+
+
 class UDPLink:
     """
     An UDPBuffer that silently buffers messages received over UDP into a queue.
@@ -34,7 +35,7 @@ class UDPLink:
 
     def __init__(self, package_size: int = 1024, buffer_size: int = 1024):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.is_buffering = False 
+        self.is_buffering = False
         self.buffer_size = buffer_size
         self.package_size = package_size
         self.buffer = multiprocessing.Queue(self.buffer_size)
@@ -56,7 +57,6 @@ class UDPLink:
             sensor_id, reply = decode(buffer)
             self.buffer.put((sensor_id, reply), block=False)
             count += 1
-            
 
     # get data from buffer
     def get(self):
@@ -74,6 +74,3 @@ class UDPLink:
         self.thread.join()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.thread = multiprocessing.Process(target=self._loop_buffer)
-        
-
-

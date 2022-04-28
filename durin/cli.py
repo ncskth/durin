@@ -3,7 +3,7 @@
 import argparse
 import numpy as np
 
-from common import *
+from .common import *
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Connect to Durin and exert control')
