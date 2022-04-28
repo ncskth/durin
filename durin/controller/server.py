@@ -77,7 +77,7 @@ class DVSServer:
 
     def _parse_command(self, data):
         if data[0] == 0:  # Start streaming
-            host_ip = ipaddress.ip_address(data[1:5])
+            host_ip = ipaddress.ip_address(int.from_bytes(data[1:5], "little"))
             port = int.from_bytes(data[5:7], "little")
             logging.debug(f"Streaming to {host_ip}:{port}")
             self.streamer.start_stream(str(host_ip), port)
@@ -89,7 +89,7 @@ class DVSServer:
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
-    server = DVSServer(3000)
+    server = DVSServer(2300)
     try:
         server.listen()
     finally:

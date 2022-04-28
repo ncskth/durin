@@ -27,8 +27,8 @@ class Sensor(ABC, Generic[T]):
 
 
 class DVSSensor(Sensor[torch.Tensor]):
-    def __init__(self, shape: Tuple[int, int], port: int):
-        self.source = aestream.UDPInput(shape, "cpu", port)
+    def __init__(self, shape: Tuple[int, int], device: str, port: int):
+        self.source = aestream.UDPInput(shape, device, port)
 
     def read(self) -> torch.Tensor:
         return self.source.read()
