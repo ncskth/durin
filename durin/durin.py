@@ -1,4 +1,7 @@
-from typing import Tuple
+import multiprocessing
+import socket
+import sys
+from typing import Optional, Tuple
 
 from .actuator import DurinActuator
 from .sensor import DurinSensor, Observation, DVSSensor
@@ -10,19 +13,43 @@ import torch
 
 
 class Durin:
-    def __init__(self, host, port_tcp):
-        self.tcp_link = TCPLink(host, port_tcp)
+    def __init__(
+        self,
+        durin_ip: str,
+        durin_port: int = 2300,
+        stream_command: Optional[StreamOn] = None,
+        spawn_cli: bool = True,
+    ):
+        self.tcp_link = TCPLink(durin_ip, durin_port)
         self.udp_link = UDPLink()
         self.sensor = DurinSensor(self.udp_link)
         self.actuator = DurinActuator(self.tcp_link, self.udp_link)
-        self.dvs = DVSSensor((128, 128), port_tcp + 1)
+        self.dvs = DVSSensor((128, 128), durin_port + 1)
+        self.spawn_cli = spawn_cli
+        std_in = sys.stdin.fileno()
+        self.cli_process = multiprocessing.Process(
+            target=run_cli, args=(self.actuator, std_in)
+        )
+
+        if stream_command is not None:
+            self.stream_command = stream_command
+        else:
+            response_ip = socket.gethostbyname(socket.gethostname())
+            self.stream_command = StreamOn(response_ip, 4300, 50)
 
     def __enter__(self):
         self.tcp_link.start_com()
+        if self.spawn_cli:
+            self.cli_process.start()
+        self(self.stream_command)
         return self
 
     def __exit__(self, e, b, t):
         self.tcp_link.stop_com()
+        self.udp_link(StreamOff())
+        if self.spawn_cli:
+            self.cli_process.terminate()
+            self.cli_process.join()
 
     def __call__(self, command):
         reply_bytes = self.actuator(command)

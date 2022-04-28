@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import ipaddress
 from typing import ByteString, TypeVar
 import struct
 
 
 from .network import TCPLink, UDPLink
 from .common import *
-from .cli import *
 
 
 T = TypeVar("T")
@@ -32,7 +32,7 @@ class PowerOff(Command):
         return data
 
 
-class MoveRobcentric(Command):
+class Move(Command):
     def __init__(self, vel_x, vel_y, rot):
         self.cmd_id = 2
         self.vel_x = int(vel_x)
@@ -53,11 +53,6 @@ class MoveRobcentric(Command):
         )  # short (int16) little endian
 
         return data
-
-
-class Move(MoveRobcentric):
-    def __init__(self, vel_x, vel_y, rot):
-        super().__init__(vel_x, vel_y, rot)
 
 
 class MoveWheels(Command):
@@ -113,18 +108,12 @@ class StreamOn(Command):
         self.period = period
 
     def encode(self):
-        host = self.host.split(".")
-        byte_count = len(host) + 2
-
+        host_ip = ipaddress.ip_address(self.host)
         data = bytearray([0] * 9)
         data[0] = self.cmd_id
-        data[1] = int(host[0])
-        data[2] = int(host[1])
-        data[3] = int(host[2])
-        data[4] = int(host[3])
+        data[1:5] = int(host_ip).to_bytes(4, "little")
         data[5:7] = self.port.to_bytes(2, "little")
         data[7:9] = self.period.to_bytes(2, "little")
-
         return data
 
 
