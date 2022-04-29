@@ -1,3 +1,4 @@
+from asyncio import QueueFull
 import ipaddress
 import logging
 import socket
@@ -22,7 +23,7 @@ class TCPLink:
         )
 
     def start_com(self):
-        logging.debug(f"TCP communication started with {self.address}")
+        logging.debug(f"TCP control communication listening on {self.address}")
         self.process.start()
 
     # Send Command to Durin and wait for response
@@ -31,7 +32,7 @@ class TCPLink:
         return self.buffer_receive.get()
 
     def stop_com(self):
-        logging.debug(f"TCP communication stopped with {self.address}")
+        logging.debug(f"TCP control communication stopped")
         self.process.terminate()
         self.process.join()
 
@@ -67,7 +68,7 @@ class UDPLink:
         self.thread = multiprocessing.Process(target=self._loop_buffer)
 
     def start_com(self, address):
-        logging.debug("Starting UDP reception")
+        logging.debug(f"UDP control reception on {address}")
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(address)
@@ -80,7 +81,10 @@ class UDPLink:
         while True:
             buffer, _ = self.socket.recvfrom(512)
             sensor_id, reply = decode(buffer)
-            self.buffer.put((sensor_id, reply), block=False)
+            try:
+                self.buffer.put((sensor_id, reply), block=False)
+            except QueueFull:
+                pass  # Queue is full
             count += 1
 
     # get data from buffer
@@ -107,11 +111,11 @@ class DVSClient:
         self.address = (host, port)
 
     def _init_connection(self):
+        logging.debug(f"UDP DVS communication sending to {self.address}")
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect(self.address)
 
     def _send_message(self, message: bytes):
-        logging.debug("Sending to server: ", message)
         try:
             self.sock.send(message)
         except (BrokenPipeError, AttributeError):

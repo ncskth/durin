@@ -3,6 +3,8 @@ import ipaddress
 import logging
 import subprocess
 import socket
+from multiprocessing import Process
+import time
 from typing import Optional
 
 from durin.controller import dvs
@@ -18,9 +20,17 @@ class Streamer:
         pass
 
 
+def _log_thread(pipe):
+    with pipe:
+        for line in iter(pipe.readline, ""):
+            if len(line) > 0:
+                logging.warning(f"AESTREAM: {line.decode('utf-8')}")
+
+
 class AEStreamer(Streamer):
     def __init__(self) -> None:
         self.aestream = None
+        self.aestream_log = None
         # Test that cameras exist
         self.camera_string = dvs.identify_inivation_camera()
         # Test that aestream exists
@@ -29,16 +39,29 @@ class AEStreamer(Streamer):
 
     def start_stream(self, host: str, port: int):
         if self.aestream is not None:
-            self.aestream.terminate()
+            self.stop_stream()
 
         command = f"aestream input {self.camera_string} output udp {host} {port}"
-        self.aestream = subprocess.Popen(command.split(" "))
-        logging.info(f"Sending DVS to {host}:{port}")
+        self.aestream = subprocess.Popen(
+            command.split(" "), stderr=subprocess.STDOUT, stdout=subprocess.PIPE
+        )
+        self.aestream_log = Process(target=_log_thread, args=(self.aestream.stdout,))
+        self.aestream_log.start()
+
+        logging.debug(f"Sending DVS to {host}:{port} with command\n\t{command}")
 
     def stop_stream(self):
-        if self.aestream:
+        try:
             self.aestream.terminate()
+            self.aestream.wait(1)
+            self.aestream.kill()
+            self.aestream.wait()
+            self.aestream_log.terminate()
+            self.aestream_log.join()
             self.aestream = None
+            self.aestream_log = None
+        except Exception as e:
+            logging.warning("Error when closing aestream", e)
 
 
 class DVSServer:
@@ -51,6 +74,7 @@ class DVSServer:
         self.sock.listen(1)
         self.buffer_size = buffer_size
         self.streamer = streamer if streamer is not None else AEStreamer()
+        self.clients = []
         self.is_streaming = False
         self.is_connected = False
 
@@ -60,11 +84,19 @@ class DVSServer:
             connection, address = self.sock.accept()
             logging.debug("New client connection established")
             self.is_connected = True
-            self._client_loop(connection)
+            thread = Process(target=self._client_loop, args=(connection,))
+            thread.start()
+            self.clients.append(thread)
 
     def close(self):
         self.is_streaming = False
         self.sock.close()
+        for thread in self.clients:
+            try:
+                thread.terminate()
+                thread.join()
+            except:
+                pass
 
     def _client_loop(self, connection):
         try:
@@ -73,7 +105,7 @@ class DVSServer:
                 if msg:
                     self._parse_command(msg)
         except ConnectionResetError:
-            pass
+            self.streamer.stop_stream()
 
     def _parse_command(self, data):
         if data[0] == 0:  # Start streaming
@@ -89,7 +121,7 @@ class DVSServer:
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
-    server = DVSServer(2300)
+    server = DVSServer(2301)
     try:
         server.listen()
     finally:

@@ -1,3 +1,4 @@
+import logging
 import multiprocessing
 import socket
 import sys
@@ -25,9 +26,9 @@ class Durin:
         self.tcp_link = TCPLink(durin_ip, durin_port)
         self.udp_link = UDPLink()
         self.sensor = DurinSensor(self.udp_link)
-        self.dvs_client = DVSClient(dvs_ip, durin_port)
+        self.dvs_client = DVSClient(dvs_ip, durin_port + 1)
         self.actuator = DurinActuator(self.tcp_link, self.udp_link)
-        self.dvs = DVSSensor((640, 480), device, durin_port + 1)
+        self.dvs = DVSSensor((640, 480), device, 4301)
         self.spawn_cli = spawn_cli
         std_in = sys.stdin.fileno()
         self.cli_process = multiprocessing.Process(
@@ -41,19 +42,30 @@ class Durin:
             self.stream_command = StreamOn(response_ip, 4300, 50)
 
     def __enter__(self):
+        # Controller
         self.tcp_link.start_com()
-        if self.spawn_cli:
-            self.cli_process.start()
         self(self.stream_command)
+
+        # DVS
+        self.dvs.start_stream()
         self.dvs_client.start_stream(
             self.stream_command.host, self.stream_command.port + 1
         )
+        logging.debug(
+            f"DVS sensor on {self.stream_command.host}:{self.stream_command.port + 1}"
+        )
+
+        # CLI
+        if self.spawn_cli:
+            self.cli_process.start()
         return self
 
     def __exit__(self, e, b, t):
         self.tcp_link.stop_com()
         self.udp_link.stop_com()
         self.dvs_client.stop_stream()
+        self.dvs.stop_stream()
+
         if self.spawn_cli:
             self.cli_process.terminate()
             self.cli_process.join()
