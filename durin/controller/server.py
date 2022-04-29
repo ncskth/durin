@@ -58,6 +58,7 @@ class AEStreamer(Streamer):
             self.aestream.wait()
             self.aestream_log.terminate()
             self.aestream_log.join()
+            subprocess.run(["pkill", "aestream"]) # Kill remaining aestream processes
             self.aestream = None
             self.aestream_log = None
         except Exception as e:
