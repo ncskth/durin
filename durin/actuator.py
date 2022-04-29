@@ -4,7 +4,6 @@ import ipaddress
 from typing import ByteString, TypeVar
 import struct
 
-
 from .network import TCPLink, UDPLink
 from .common import *
 
@@ -108,10 +107,15 @@ class StreamOn(Command):
         self.period = period
 
     def encode(self):
-        host_ip = ipaddress.ip_address(self.host)
         data = bytearray([0] * 9)
         data[0] = self.cmd_id
+        host_ip = ipaddress.ip_address(self.host)
         data[1:5] = int(host_ip).to_bytes(4, "little")
+        # host = self.host.split(".")
+        # data[1] = int(host[0])
+        # data[2] = int(host[1])
+        # data[3] = int(host[2])
+        # data[4] = int(host[3])
         data[5:7] = self.port.to_bytes(2, "little")
         data[7:9] = self.period.to_bytes(2, "little")
         return data
@@ -128,63 +132,15 @@ class StreamOff(Command):
         return data
 
 
-class Request(Command):
-    def __init__(self, cli_in):
-        self.cli_in = cli_in
-        self.cmdlist = available_cmds()
-        self.cmd_id = 0
-
-    def encode(self):
-        data = bytearray([0] * 1)
-        command, arg_array, isvalid = parse_line(self.cli_in)
-        if isvalid:
-
-            self.cmd_id = int(
-                self.cmdlist[[command in list for list in self.cmdlist].index(True)][0]
-            )
-
-            if command == "power_off":
-                data = PowerOff().encode()
-
-            if command == "move_robcentric":
-                data = MoveRobcentric(arg_array[0], arg_array[1], arg_array[2]).encode()
-
-            if command == "move_wheels":
-                data = MoveWheels(
-                    arg_array[0], arg_array[1], arg_array[2], arg_array[3]
-                ).encode()
-
-            if command == "poll_all":
-                data = PollAll().encode()
-
-            if command == "poll_sensor":
-                data = PollSensor(arg_array[0]).encode()
-
-            if command == "start_stream":
-                data = StreamOn().encode()
-
-            if command == "stop_stream":
-                data = StreamOff().encode()
-
-        return data
-
-
 class DurinActuator:
-    def __init__(self, tcp_link: TCPLink, udp_link: UDPLink):
+    def __init__(self, tcp_link: TCPLink):
         self.tcp_link = tcp_link
-        self.udp_link = udp_link
 
     def __call__(self, action: Command):
         command_bytes = action.encode()
         reply = []
         if command_bytes[0] == 0:
             return reply
-
-        if type(action) == StreamOn:
-            self.udp_link.start_com((action.host, action.port))
-
-        if type(action) == StreamOff:
-            self.udp_link.stop_com()
 
         buffer = self.tcp_link.send(command_bytes)
         _, reply = decode(buffer)

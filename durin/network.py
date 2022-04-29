@@ -1,6 +1,6 @@
-from asyncio import QueueFull
 import ipaddress
 import logging
+from queue import Empty, Full
 import socket
 import multiprocessing
 from typing import ByteString, Tuple
@@ -11,7 +11,7 @@ from .common import *
 class TCPLink:
     """ """
 
-    def __init__(self, host: str, port: str, buffer_size: int = 1):
+    def __init__(self, host: str, port: str, buffer_size: int = 1024):
         self.address = (host, int(port))
         # Buffer towards Durin
         self.buffer_send = multiprocessing.Queue(buffer_size)
@@ -23,7 +23,6 @@ class TCPLink:
         )
 
     def start_com(self):
-        logging.debug(f"TCP control communication listening on {self.address}")
         self.process.start()
 
     # Send Command to Durin and wait for response
@@ -43,15 +42,21 @@ class TCPLink:
         address: Tuple[str, int],
     ):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(address)
+        try:
+            sock.connect(address)
+        except ConnectionRefusedError as e:
+            raise ConnectionRefusedError(f"Cannot reach Durin at {address}")
 
-        while True:
-            command = queue_send.get()
-            sock.send(command)
-            data = sock.recv(1024)
-            queue_receive.put(data)
+        logging.debug(f"TCP control communication connected to {address}")
 
-        sock.close()
+        try:
+            while True:
+                command = queue_send.get()
+                sock.send(command)
+                data = sock.recv(512)
+                queue_receive.put(data)
+        except ConnectionResetError as e:
+            raise ConnectionResetError("TCP control communication ended by Durin")
 
 
 class UDPLink:
@@ -59,50 +64,60 @@ class UDPLink:
     An UDPBuffer that silently buffers messages received over UDP into a queue.
     """
 
-    def __init__(self, package_size: int = 1024, buffer_size: int = 1024):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.is_buffering = False
+    def __init__(self, package_size: int = 512, buffer_size: int = 2):
         self.buffer_size = buffer_size
         self.package_size = package_size
         self.buffer = multiprocessing.Queue(self.buffer_size)
-        self.thread = multiprocessing.Process(target=self._loop_buffer)
+        self.thread = multiprocessing.Process(
+            target=self._loop_buffer,
+            args=(self.buffer,),
+        )
 
-    def start_com(self, address):
-        logging.debug(f"UDP control reception on {address}")
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind(address)
+    def start_com(self, host: str, ip: int):
         self.thread.start()
-        self.is_buffering = True
+        self.buffer.put((host, ip))  # Put address in queue
 
-    def _loop_buffer(self):
+    def _loop_buffer(self, message_queue):
         count = 0
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        address = message_queue.get()
+        sock.bind(address)
 
-        while True:
-            buffer, _ = self.socket.recvfrom(512)
-            sensor_id, reply = decode(buffer)
+        logging.debug(f"UDP control receiving on {address}")
+
+        try:
+            while True:
+                print("RECEIVING")
+                buffer, _ = sock.recvfrom(self.package_size)
+                print("BUFFER", buffer)
+                sensor_id, reply = decode(buffer)
+                print("RECEIVE", sensor_id, reply)
+                try:
+                    message_queue.put((sensor_id, reply), block=False)
+                except Full:
+                    pass  # Queue is full
+                count += 1
+        except KeyboardInterrupt:
+            pass
+        finally:
             try:
-                self.buffer.put((sensor_id, reply), block=False)
-            except QueueFull:
-                pass  # Queue is full
-            count += 1
+                sock.close()
+            except:
+                pass
 
     # get data from buffer
     def get(self):
-        while not self.buffer.empty():
-            data = self.buffer.get(block=False)
-            return data
-        return (0, [])
+        try:
+            return self.buffer.get(block=False)
+        except Empty:
+            return (0, [])
 
     def stop_com(self):
-        self.is_buffering = False
         self.buffer.close()
         self.buffer = multiprocessing.Queue(self.buffer_size)
-        self.socket.close()
         self.thread.terminate()
         self.thread.join()
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.thread = multiprocessing.Process(target=self._loop_buffer)
 
 
 class DVSClient:
@@ -111,16 +126,21 @@ class DVSClient:
         self.address = (host, port)
 
     def _init_connection(self):
-        logging.debug(f"UDP DVS communication sending to {self.address}")
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect(self.address)
+        logging.debug(f"UDP DVS communication sending to {self.address}")
 
     def _send_message(self, message: bytes):
         try:
             self.sock.send(message)
-        except (BrokenPipeError, AttributeError):
-            self._init_connection()
-            self.sock.send(message)
+        except (BrokenPipeError, AttributeError) as e:
+            try:
+                self._init_connection()
+            except ConnectionRefusedError as e:
+                raise ConnectionRefusedError(
+                    f"Could not connect to DVS controller at {self.address}", e
+                )
+            self._send_message(message)
 
     def start_stream(self, host: str, port: int):
         data = bytearray([0] * 7)

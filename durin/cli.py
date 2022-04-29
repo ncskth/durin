@@ -30,6 +30,7 @@ def run_cli(actuator, stdin=sys.stdin.fileno()):
     try:
         while True:
             command = input("> ")
+
             if not parse(command, actuator):
                 return
     except KeyboardInterrupt:

@@ -1,12 +1,13 @@
 from ctypes import *
 import socket
 import numpy as np
+import datetime
 
 
 BRAIN_IP = "127.0.0.1"
 DURIN_IP = "127.0.0.1"
-PORT_TCP = 2300
-PORT_UDP = 5000
+PORT_TCP = 1337
+PORT_UDP = 2300
 
 
 def available_cmds():
