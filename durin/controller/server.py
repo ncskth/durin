@@ -31,11 +31,14 @@ class AEStreamer(Streamer):
     def __init__(self) -> None:
         self.aestream = None
         self.aestream_log = None
-        # Test that cameras exist
-        self.camera_string = dvs.identify_inivation_camera()
         # Test that aestream exists
         if subprocess.run(["which", "aestream"]).returncode > 0:
-            logging.warning("No DVX camera found on startup")
+            raise RuntimeError("No aestream binary found on path")
+        # Test that cameras exist
+        try:
+            self.camera_string = dvs.identify_inivation_camera()
+        except RuntimeError as e:
+            logging.warning("No DVX camera found on startup", e)
 
     def start_stream(self, host: str, port: int):
         if self.aestream is not None:
