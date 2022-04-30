@@ -44,7 +44,7 @@ class TCPLink:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             sock.connect(address)
-        except ConnectionRefusedError as e:
+        except (ConnectionRefusedError, OSError) as e:
             raise ConnectionRefusedError(f"Cannot reach Durin at {address}")
 
         logging.debug(f"TCP control communication connected to {address}")

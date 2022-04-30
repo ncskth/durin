@@ -107,6 +107,7 @@ class StreamOn(Command):
         self.period = period
 
     def encode(self):
+        print("Encoding ", self.period)
         data = bytearray([0] * 9)
         data[0] = self.cmd_id
         host = self.host.split(".")

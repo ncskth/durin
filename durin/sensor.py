@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import ByteString, Callable, Generic, Tuple, TypeVar
+import time
+from typing import Generic, Tuple, TypeVar
 
 import torch
 import numpy as np
 import aestream
 
+
+from .ringbuffer import RingBuffer
 from .network import UDPLink
 from .common import *
 
@@ -48,6 +50,9 @@ class DurinSensor(Sensor[Observation]):
         self.charge = 0
         self.voltage = 0
         self.imu = np.zeros((3, 3))
+        self.ringbuffer = RingBuffer(shape=(50,))
+        self.timestamp_update = time.time()
+        self.freq = 0
 
     def read(self) -> Observation:
         (sensor_id, data) = self.link.get()
@@ -60,5 +65,11 @@ class DurinSensor(Sensor[Observation]):
             self.imu = data[2]
         if sensor_id == SENSORS["uwb"]:
             self.uwb = data
+
+        # Update Hz
+        time_now = time.time()
+        times = self.ringbuffer.append(time_now - self.timestamp_update)
+        self.freq = times.mean()
+        self.timestamp_update = time_now
 
         return Observation(self.tof, (self.charge, self.voltage), self.imu, self.uwb)
