@@ -63,12 +63,14 @@ class AEStreamer(Streamer):
 
     def stop_stream(self):
         try:
-            self.aestream.terminate()
-            self.aestream.wait(1)
-            self.aestream.kill()
-            self.aestream.wait()
-            self.aestream_log.terminate()
-            self.aestream_log.join()
+            if self.aestream is not None:
+                self.aestream.terminate()
+                self.aestream.wait(1)
+                self.aestream.kill()
+                self.aestream.wait()
+            if self.aestream_log is not None:
+                self.aestream_log.terminate()
+                self.aestream_log.join()
             subprocess.run(["pkill", "aestream"])  # Kill remaining aestream processes
             self.aestream = None
             self.aestream_log = None
