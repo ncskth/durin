@@ -57,10 +57,10 @@ class Durin:
         self(self.stream_command)
 
         # DVS
-        # self.dvs.start_stream()
-        # self.dvs_client.start_stream(
-        #     self.stream_command.host, self.stream_command.port + 1
-        # )
+        self.dvs.start_stream()
+        self.dvs_client.start_stream(
+            self.stream_command.host, self.stream_command.port + 1
+        )
 
         # CLI
         if self.spawn_cli:

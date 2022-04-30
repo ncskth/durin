@@ -88,11 +88,8 @@ class UDPLink:
 
         try:
             while True:
-                print("RECEIVING")
                 buffer, _ = sock.recvfrom(self.package_size)
-                print("BUFFER", buffer)
                 sensor_id, reply = decode(buffer)
-                print("RECEIVE", sensor_id, reply)
                 try:
                     message_queue.put((sensor_id, reply), block=False)
                 except Full:

@@ -109,13 +109,11 @@ class StreamOn(Command):
     def encode(self):
         data = bytearray([0] * 9)
         data[0] = self.cmd_id
-        host_ip = ipaddress.ip_address(self.host)
-        data[1:5] = int(host_ip).to_bytes(4, "little")
-        # host = self.host.split(".")
-        # data[1] = int(host[0])
-        # data[2] = int(host[1])
-        # data[3] = int(host[2])
-        # data[4] = int(host[3])
+        host = self.host.split(".")
+        data[1] = int(host[0])
+        data[2] = int(host[1])
+        data[3] = int(host[2])
+        data[4] = int(host[3])
         data[5:7] = self.port.to_bytes(2, "little")
         data[7:9] = self.period.to_bytes(2, "little")
         return data

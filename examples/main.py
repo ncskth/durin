@@ -10,7 +10,7 @@ from durin.visuals import launch_visual
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
 
-    with Durin("172.16.222.92", "172.16.223.244") as durin:
+    with Durin("172.16.222.94", "172.16.222.103") as durin:
         # This starts the visualization of ToF sensor data
         # p_visual, px = launch_visual()
         # p_visual.start()
@@ -23,4 +23,4 @@ if __name__ == "__main__":
             # durin(PollSensor(SENSORS["misc"]))
             print("OBS: ", dvs.sum(), obs.imu.mean())
 
-            time.sleep(0.1)
+            time.sleep(0.5)
