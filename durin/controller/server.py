@@ -35,11 +35,18 @@ class AEStreamer(Streamer):
         self.camera_string = dvs.identify_inivation_camera()
         # Test that aestream exists
         if subprocess.run(["which", "aestream"]).returncode > 0:
-            raise ImportError("aestream could not be found")
+            logging.warning("No DVX camera found on startup")
 
     def start_stream(self, host: str, port: int):
         if self.aestream is not None:
             self.stop_stream()
+
+        # Get the camera string
+        try:
+            self.camera_string = dvs.identify_inivation_camera()
+        except Exception as e:
+            logging.warning("No camera found", e)
+            return
 
         command = f"aestream input {self.camera_string} output udp {host} {port}"
         self.aestream = subprocess.Popen(
@@ -58,7 +65,7 @@ class AEStreamer(Streamer):
             self.aestream.wait()
             self.aestream_log.terminate()
             self.aestream_log.join()
-            subprocess.run(["pkill", "aestream"]) # Kill remaining aestream processes
+            subprocess.run(["pkill", "aestream"])  # Kill remaining aestream processes
             self.aestream = None
             self.aestream_log = None
         except Exception as e:
