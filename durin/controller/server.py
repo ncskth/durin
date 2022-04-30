@@ -48,6 +48,7 @@ class AEStreamer(Streamer):
         # Get the camera string
         try:
             self.camera_string = dvs.identify_inivation_camera()
+            logging.debug("Camera found at ", self.camera_string)
         except Exception as e:
             logging.warning("No camera found", e)
             return
