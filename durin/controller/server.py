@@ -94,6 +94,7 @@ class DVSServer:
         while self.is_streaming:
             connection, address = self.sock.accept()
             logging.debug("New client connection established")
+            self.close_clients()
             self.is_connected = True
             thread = Process(target=self._client_loop, args=(connection,))
             thread.start()
@@ -101,7 +102,10 @@ class DVSServer:
 
     def close(self):
         self.is_streaming = False
+        self.close_clients()
         self.sock.close()
+
+    def close_clients(self):
         for thread in self.clients:
             try:
                 thread.terminate()
@@ -115,7 +119,7 @@ class DVSServer:
                 msg = connection.recv(self.buffer_size)
                 if msg:
                     self._parse_command(msg)
-        except ConnectionResetError:
+        except Exception:
             self.streamer.stop_stream()
 
     def _parse_command(self, data):
