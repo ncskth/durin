@@ -48,7 +48,7 @@ class AEStreamer(Streamer):
         # Get the camera string
         try:
             self.camera_string = dvs.identify_inivation_camera()
-            logging.debug("Camera found at ", self.camera_string)
+            logging.debug(f"Camera found at {self.camera_string}")
         except Exception as e:
             logging.warning("No camera found", e)
             return
@@ -94,8 +94,9 @@ class DVSServer:
         while self.is_streaming:
             connection, address = self.sock.accept()
             logging.debug("New client connection established")
+            self.streamer.stop_stream()
             self.close_clients()
-            thread = Process(target=self._client_loop, args=(connection, self.streamer))
+            thread = Process(target=self.client_loop, args=(connection, self.streamer))
             thread.start()
             self.clients.append(thread)
 
@@ -114,16 +115,20 @@ class DVSServer:
                 pass
 
     @staticmethod
-    def _client_loop(connection, streamer):
+    def client_loop(connection, streamer):
         try:
             while True:
-                msg = connection.recv(64)
-                if msg:
-                    DVSClient._parse_command(msg, streamer)
-        except Exception:
+                msg = connection.recv(512)
+                DVSServer._parse_command(msg, streamer)
+        except Exception as e:
             streamer.stop_stream()
+            logging.warning("Error when receiving data", e)
 
+    @staticmethod
     def _parse_command(data, streamer):
+        if len(data) == 0:
+            return
+        logging.debug(f"Received command: {len(data)} bytes of type {data[0]}")
         if data[0] == 0:  # Start streaming
             host_ip = ipaddress.ip_address(int.from_bytes(data[1:5], "little"))
             port = int.from_bytes(data[5:7], "little")
