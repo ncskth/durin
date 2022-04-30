@@ -106,6 +106,7 @@ class DVSServer:
         self.sock.close()
 
     def close_clients(self):
+        logging.debug(f"Closing {len(self.clients)} clients")
         for thread in self.clients:
             try:
                 thread.terminate()
