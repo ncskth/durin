@@ -8,6 +8,7 @@ import time
 from typing import Optional
 
 from durin.controller import dvs
+from durin.network import DVSClient
 
 
 class Streamer:
@@ -76,18 +77,14 @@ class AEStreamer(Streamer):
 
 
 class DVSServer:
-    def __init__(
-        self, port: int, buffer_size: int = 32, streamer: Optional[Streamer] = None
-    ) -> None:
+    def __init__(self, port: int, streamer: Optional[Streamer] = None) -> None:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         logging.debug(f"Listening to 0.0.0.0 {port}")
         self.sock.bind(("0.0.0.0", port))
         self.sock.listen(1)
-        self.buffer_size = buffer_size
         self.streamer = streamer if streamer is not None else AEStreamer()
         self.clients = []
         self.is_streaming = False
-        self.is_connected = False
 
     def listen(self):
         self.is_streaming = True
@@ -95,8 +92,7 @@ class DVSServer:
             connection, address = self.sock.accept()
             logging.debug("New client connection established")
             self.close_clients()
-            self.is_connected = True
-            thread = Process(target=self._client_loop, args=(connection,))
+            thread = Process(target=self._client_loop, args=(connection, self.streamer))
             thread.start()
             self.clients.append(thread)
 
@@ -106,7 +102,7 @@ class DVSServer:
         self.sock.close()
 
     def close_clients(self):
-        logging.debug(f"Closing {len(self.clients)} clients")
+        logging.debug(f"Closing {len(self.clients)} old clients")
         for thread in self.clients:
             try:
                 thread.terminate()
@@ -114,25 +110,25 @@ class DVSServer:
             except:
                 pass
 
-    def _client_loop(self, connection):
+    @staticmethod
+    def _client_loop(connection, streamer):
         try:
-            while self.is_connected:
-                msg = connection.recv(self.buffer_size)
+            while True:
+                msg = connection.recv(64)
                 if msg:
-                    self._parse_command(msg)
+                    DVSClient._parse_command(msg, streamer)
         except Exception:
-            self.streamer.stop_stream()
+            streamer.stop_stream()
 
-    def _parse_command(self, data):
+    def _parse_command(data, streamer):
         if data[0] == 0:  # Start streaming
             host_ip = ipaddress.ip_address(int.from_bytes(data[1:5], "little"))
             port = int.from_bytes(data[5:7], "little")
             logging.debug(f"Streaming to {host_ip}:{port}")
-            self.streamer.start_stream(str(host_ip), port)
+            streamer.start_stream(str(host_ip), port)
         else:  # Stop streaming
             logging.debug(f"Terminating streaming")
-            self.streamer.stop_stream()
-            self.is_connected = False
+            streamer.stop_stream()
 
 
 if __name__ == "__main__":
