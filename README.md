@@ -10,10 +10,21 @@ We require GCC-10, [pip](https://pypi.org/project/pip/), [PyTorch](https://pytor
 On Debian-like systems (like Ubuntu), you can install Durin with the following commands:
 ```bash
 sudo apt install gcc-10 python3-pip
-pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
+pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
 pip install --upgrade pip
-pip install git+https://github.com/norse/aestream
+pip install git+https://github.com/norse/aestream 
 pip install git+https://github.com/ncskth/durin
+```
+
+If you have network problems at Capocaccia, run the following:
+```bash
+export NCS_HOST=10.1.18.67
+sudo apt install gcc-10 python3-pip
+pip install torch --extra-index-url https://download.pytorch.org/whl/cpu --extra-index-url=http://$NCS_HOST:8000/ --trusted-host=$NCS_HOST
+pip install --upgrade pip
+pip install git+https://github.com/norse/aestream --extra-index-url=http://$NCS_HOST:8000/ --trusted-host=$NCS_HOST
+pip install git+https://github.com/ncskth/durin --extra-index-url=http://$NCS_HOST:8000/ --trusted-host=$NCS_HOST
+
 ```
 
 ## Usage
@@ -65,5 +76,4 @@ A complete specification is available via Google Drive: https://docs.google.com/
 
 ## Contact
 
-Reach out to Juan or Jens if you need anything
-
+Reach out to Juan or Jens if you need anything.

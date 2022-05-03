@@ -48,7 +48,7 @@ class Durin:
         durin_ip: str,
         device: str = "cpu",
         stream_command: Optional[StreamOn] = None,
-        sensor_frequency: int = 10,
+        sensor_frequency: int = 100,
         spawn_cli: bool = True,
     ):
         if stream_command is not None:
