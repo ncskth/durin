@@ -10,7 +10,8 @@ We require GCC-10, [pip](https://pypi.org/project/pip/), [PyTorch](https://pytor
 On Debian-like systems (like Ubuntu), you can install Durin with the following commands:
 ```bash
 sudo apt install gcc-10 python3-pip
-pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
+pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
+pip install --upgrade pip
 pip install git+https://github.com/norse/aestream
 pip install git+https://github.com/ncskth/durin
 ```
