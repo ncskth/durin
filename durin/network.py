@@ -11,7 +11,7 @@ from .common import *
 class TCPLink:
     """ """
 
-    def __init__(self, host: str, port: str, buffer_size: int = 1024):
+    def __init__(self, host: str, port: str, buffer_size: int = 2):
         self.address = (host, int(port))
         # Buffer towards Durin
         self.buffer_send = multiprocessing.Queue(buffer_size)
@@ -27,7 +27,7 @@ class TCPLink:
 
     # Send Command to Durin and wait for response
     def send(self, command: ByteString):
-        self.buffer_send.put(command)
+        self.buffer_send.put(command, block=False)
         return self.buffer_receive.get()
 
     def stop_com(self):
@@ -135,7 +135,7 @@ class DVSClient:
                 self._init_connection()
             except ConnectionRefusedError as e:
                 raise ConnectionRefusedError(
-                    f"Could not connect to DVS controller at {self.address}", e
+                    f"Could not connect to DVS controller at {self.address}"
                 )
             self._send_message(message)
 
