@@ -18,16 +18,15 @@ def norm(x):
     else:
         return ((x - MID - MIN) / ABS) * 500
 
-with Durin("172.16.223.95", sensor_frequency=100) as durin:
+with Durin("172.16.223.91", sensor_frequency=50) as durin:
 
     x = 0
     y = 0
     r = 0
-
     time_sent = time.time()
 
     while True:
-        (obs, dvs) = durin.read()
+        # (obs, dvs) = durin.read()
 
         # Register gamepad events
         events = get_gamepad()
@@ -43,7 +42,7 @@ with Durin("172.16.223.95", sensor_frequency=100) as durin:
                     r = state
 
         time_current = time.time()
-        if (time_current - time_sent > 0.1):
+        if (time_current - time_sent > 0.5):
             print(f"Moving x {norm(x)} y {norm(y)} r {norm(r)}")
             durin(Move(norm(x), norm(y), norm(r)))
             time_sent = time_current
