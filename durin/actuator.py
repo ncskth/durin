@@ -134,12 +134,15 @@ class DurinActuator:
     def __init__(self, tcp_link: TCPLink):
         self.tcp_link = tcp_link
 
-    def __call__(self, action: Command):
+    def __call__(self, action: Command, timeout: float = 0.1):
         command_bytes = action.encode()
         reply = []
         if command_bytes[0] == 0:
             return reply
 
-        buffer = self.tcp_link.send(command_bytes)
-        _, reply = decode(buffer)
-        return reply
+        buffer = self.tcp_link.send(command_bytes, timeout=timeout)
+        if buffer is None:
+            return buffer
+        else:
+            _, reply = decode(buffer)
+            return reply

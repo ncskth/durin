@@ -3,7 +3,7 @@ import logging
 from queue import Empty, Full
 import socket
 import multiprocessing
-from typing import ByteString, Tuple
+from typing import ByteString, Optional, Tuple
 
 from .common import *
 
@@ -11,12 +11,18 @@ from .common import *
 class TCPLink:
     """ """
 
-    def __init__(self, host: str, port: str, buffer_size: int = 2):
+    def __init__(
+        self,
+        host: str,
+        port: str,
+        buffer_size_send: int = 1,
+        buffer_size_receive: int = 1000,
+    ):
         self.address = (host, int(port))
         # Buffer towards Durin
-        self.buffer_send = multiprocessing.Queue(buffer_size)
+        self.buffer_send = multiprocessing.Queue(buffer_size_send)
         # Buffer receiving replies
-        self.buffer_receive = multiprocessing.Queue(buffer_size)
+        self.buffer_receive = multiprocessing.Queue(buffer_size_receive)
         self.process = multiprocessing.Process(
             target=self._tcp_loop,
             args=(self.buffer_send, self.buffer_receive, self.address),
@@ -26,14 +32,28 @@ class TCPLink:
         self.process.start()
 
     # Send Command to Durin and wait for response
-    def send(self, command: ByteString):
-        self.buffer_send.put(command, block=False)
-        return self.buffer_receive.get()
+    def send(self, command: ByteString, timeout: float) -> Optional[ByteString]:
+        self.buffer_send.put(command)
+
+        try:
+            return self.buffer_receive.get(timeout=timeout)
+        except Empty:
+            return None
 
     def stop_com(self):
         logging.debug(f"TCP control communication stopped")
         self.process.terminate()
         self.process.join()
+
+    @staticmethod
+    def _tcp_receive(
+        queue_receive: multiprocessing.Queue, sock: socket.socket, timeout: float
+    ):
+        try:
+            data = sock.recv(512)
+            queue_receive.put(data, timeout=timeout)
+        except (Full, KeyboardInterrupt):
+            pass
 
     @staticmethod
     def _tcp_loop(
@@ -53,8 +73,11 @@ class TCPLink:
             while True:
                 command = queue_send.get()
                 sock.send(command)
-                data = sock.recv(512)
-                queue_receive.put(data)
+                r = multiprocessing.Process(
+                    target=TCPLink._tcp_receive, args=(queue_receive, sock, 0.1)
+                )
+                r.start()
+
         except ConnectionResetError as e:
             raise ConnectionResetError("TCP control communication ended by Durin")
 
