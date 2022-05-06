@@ -3,6 +3,7 @@ import socket
 import numpy as np
 import datetime
 
+DURIN_NETWORK_IP = "172.16.223.1"
 
 BRAIN_IP = "127.0.0.1"
 DURIN_IP = "127.0.0.1"
@@ -60,7 +61,7 @@ SENSORS = {
 
 def decode(buffer):
 
-    reply = "No reply expected"
+    reply = ""
     sensor_id = buffer[0]
 
     # Decoding ToF Sensors
@@ -95,8 +96,7 @@ def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.settimeout(0)
     try:
-        # doesn't even have to be reachable
-        s.connect(("10.255.255.255", 1))
+        s.connect((DURIN_NETWORK_IP, 1))
         IP = s.getsockname()[0]
     except Exception:
         IP = "127.0.0.1"

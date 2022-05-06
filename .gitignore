@@ -2,7 +2,6 @@
 .vscode/
 *.egg-info/
 __pycache__/
-numpy-1.22.3-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
-pyusb-1.2.1-py3-none-any.whl
-torch-1.11.0-cp38-cp38-manylinux1_x86_64.whl
-typing_extensions-4.2.0-py3-none-any.whl
+*.whl
+*.dat
+*.mp4

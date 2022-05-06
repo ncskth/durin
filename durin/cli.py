@@ -16,17 +16,19 @@ def parse(command: str, actuator: DurinActuator):
         out = eval(command)
         if isinstance(out, Command):
             reply = actuator(out)
-            print(reply)
+            if reply is not None:
+                print(reply)
         else:
             print(f"Unknown command {out}")
     except Exception as e:
         print(e)
     return True
 
+
 def run_cli(actuator, stdin=sys.stdin.fileno()):
     print("Durin robot control environment")
     print("Available commands:")
-    print("\t Move x y a")
+    print("\t Move(x,y,a)")
     # TODO: Print list of commands
     fd = os.fdopen(stdin)
     old = termios.tcgetattr(fd)
@@ -39,16 +41,16 @@ def run_cli(actuator, stdin=sys.stdin.fileno()):
             key = fd.read(1)
 
             if ord(key) == 10:
-                print("Letter", vs)
-                parse(vs, actuator)
-                vs = ""
-            elif ord(key) == 65: # Up
+                if len(vs) > 0:
+                    parse(vs, actuator)
+                    vs = ""
+            elif ord(key) == 65:  # Up
                 actuator(Move(0, 500, 0))
-            elif ord(key) == 66: # Down
+            elif ord(key) == 66:  # Down
                 actuator(Move(0, -500, 0))
-            elif ord(key) == 68: # Left
+            elif ord(key) == 68:  # Left
                 actuator(Move(-500, 0, 0))
-            elif ord(key) == 67: # Right
+            elif ord(key) == 67:  # Right
                 actuator(Move(500, 0, 0))
             elif ord(key) == 127:
                 print("\b", end="", flush=True)
@@ -61,6 +63,7 @@ def run_cli(actuator, stdin=sys.stdin.fileno()):
         print()
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
 
 #### Figure out:
 

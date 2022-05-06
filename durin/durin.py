@@ -48,7 +48,7 @@ class Durin:
         durin_ip: str,
         device: str = "cpu",
         stream_command: Optional[StreamOn] = None,
-        sensor_frequency: int = 100,
+        sensor_frequency: int = 15,
         spawn_cli: bool = True,
     ):
         if stream_command is not None:
@@ -110,7 +110,7 @@ class Durin:
         self.dvs.stop_stream()
 
         if self.spawn_cli:
-            self.cli_process.terminate()
+            self.cli_process.kill()
             self.cli_process.join()
 
     def __call__(self, command):
@@ -124,8 +124,9 @@ class Durin:
         Retrieves sensor data from Durin
 
         Returns:
-            Tuple of Observation and DVS tensors
+            Tuple of Observation, DVS tensors, and Command reply
         """
         durin = self.sensor.read()
         dvs = self.dvs.read()
-        return (durin, dvs)
+        cmd = self.actuator.read()
+        return (durin, dvs, cmd)

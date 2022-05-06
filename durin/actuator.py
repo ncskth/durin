@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import ipaddress
+from queue import Full
 from typing import ByteString, TypeVar
 import struct
 
@@ -134,15 +135,22 @@ class DurinActuator:
     def __init__(self, tcp_link: TCPLink):
         self.tcp_link = tcp_link
 
-    def __call__(self, action: Command, timeout: float = 0.1):
+    def __call__(self, action: Command, timeout: float = 0.05):
         command_bytes = action.encode()
         reply = []
         if command_bytes[0] == 0:
             return reply
 
-        buffer = self.tcp_link.send(command_bytes, timeout=timeout)
-        if buffer is None:
-            return buffer
+        try:
+            self.tcp_link.send(command_bytes, timeout=timeout)
+        except Full:
+            pass
+
+        return None
+
+    def read(self):
+        reply = self.tcp_link.read()
+        if reply is not None:
+            return decode(reply)
         else:
-            _, reply = decode(buffer)
-            return reply
+            return None

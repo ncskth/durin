@@ -15,7 +15,7 @@ class TCPLink:
         self,
         host: str,
         port: str,
-        buffer_size_send: int = 1,
+        buffer_size_send: int = 10,
         buffer_size_receive: int = 1000,
     ):
         self.address = (host, int(port))
@@ -32,18 +32,22 @@ class TCPLink:
         self.process.start()
 
     # Send Command to Durin and wait for response
-    def send(self, command: ByteString, timeout: float) -> Optional[ByteString]:
-        self.buffer_send.put(command)
-
+    def send(self, command: ByteString, timeout: float) -> None:
         try:
-            return self.buffer_receive.get(timeout=timeout)
-        except Empty:
+            self.buffer_send.put(command, block=False)
+        except Full:
             return None
 
     def stop_com(self):
         logging.debug(f"TCP control communication stopped")
         self.process.terminate()
         self.process.join()
+
+    def read(self) -> Optional[ByteString]:
+        try:
+            return self.buffer_receive.get(block=False)
+        except Empty:
+            return None
 
     @staticmethod
     def _tcp_receive(
@@ -73,6 +77,7 @@ class TCPLink:
             while True:
                 command = queue_send.get()
                 sock.send(command)
+                logging.debug("TCP sent command")
                 r = multiprocessing.Process(
                     target=TCPLink._tcp_receive, args=(queue_receive, sock, 0.1)
                 )
