@@ -12,13 +12,13 @@ logging.getLogger().setLevel(logging.DEBUG)
 p_visual, dvs_np, tof_np, ev_count = launch_visual()
 p_visual.start()
 
-with Durin("172.16.223.95", stream_command=StreamOn("172.16.223.87", 4501, 100)) as durin:
+with Durin("172.16.223.91", stream_command=StreamOn("172.16.223.87", 4501, 100)) as durin:
 
     freq = 10 # Hz
     timestamp = time.time()
     acc = 0
     while True:
-        (obs, dvs) = durin.read()
+        (obs, dvs, cmd) = durin.read()
 
 
        
