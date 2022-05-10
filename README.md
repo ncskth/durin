@@ -12,7 +12,7 @@ On Debian-like systems (like Ubuntu), you can install Durin with the following c
 sudo apt install gcc-10 libcaer-dev python3-pip
 pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
 pip install --upgrade pip
-pip install git+https://github.com/norse/aestream@feature-aedat-output
+pip install git+https://github.com/norse/aestream
 pip install git+https://github.com/ncskth/durin
 ```
 
@@ -22,7 +22,7 @@ export NCS_HOST=10.1.18.67
 sudo apt install gcc-10 libcaer-dev python3-pip
 pip install torch --extra-index-url https://download.pytorch.org/whl/cpu --extra-index-url=http://$NCS_HOST:8000/ --trusted-host=$NCS_HOST
 pip install --upgrade pip
-pip install git+https://github.com/norse/aestream@feature-aedat-output --extra-index-url=http://$NCS_HOST:8000/ --trusted-host=$NCS_HOST
+pip install git+https://github.com/norse/aestream --extra-index-url=http://$NCS_HOST:8000/ --trusted-host=$NCS_HOST
 pip install git+https://github.com/ncskth/durin --extra-index-url=http://$NCS_HOST:8000/ --trusted-host=$NCS_HOST
 
 ```
