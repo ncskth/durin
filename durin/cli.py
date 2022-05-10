@@ -31,8 +31,6 @@ def run_cli(actuator, stdin=sys.stdin.fileno()):
     print("\t Move(x,y,a)")
     # TODO: Print list of commands
     fd = os.fdopen(stdin)
-    old = termios.tcgetattr(fd)
-    new = termios.tcgetattr(fd)
 
     tty.setcbreak(fd)
     try:
@@ -59,10 +57,10 @@ def run_cli(actuator, stdin=sys.stdin.fileno()):
             else:
                 vs = vs + key
                 print(key, end="", flush=True)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, SystemExit):
         print()
     finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+        tty.setraw(fd)
 
 
 #### Figure out:
