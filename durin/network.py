@@ -15,7 +15,7 @@ class TCPLink:
         self,
         host: str,
         port: str,
-        buffer_size_send: int = 10,
+        buffer_size_send: int = 3,
         buffer_size_receive: int = 1000,
     ):
         self.address = (host, int(port))
@@ -23,13 +23,26 @@ class TCPLink:
         self.buffer_send = multiprocessing.Queue(buffer_size_send)
         # Buffer receiving replies
         self.buffer_receive = multiprocessing.Queue(buffer_size_receive)
-        self.process = multiprocessing.Process(
-            target=self._tcp_loop,
-            args=(self.buffer_send, self.buffer_receive, self.address),
+
+        # Create socket
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.sock.connect(self.address)
+        except (ConnectionRefusedError, OSError) as e:
+            raise ConnectionRefusedError(f"Cannot reach Durin at {self.address}")
+
+        # Start threads
+        self.process_send = multiprocessing.Process(
+            target=self._tcp_send,
+            args=(self.buffer_send, self.sock, self.address),
+        )
+        self.process_receive = multiprocessing.Process(
+            target=self._tcp_receive, args=(self.buffer_receive, self.sock, 0.1)
         )
 
     def start_com(self):
-        self.process.start()
+        self.process_receive.start()
+        self.process_send.start()
 
     # Send Command to Durin and wait for response
     def send(self, command: ByteString, timeout: float) -> None:
@@ -40,8 +53,10 @@ class TCPLink:
 
     def stop_com(self):
         logging.debug(f"TCP control communication stopped")
-        self.process.terminate()
-        self.process.join()
+        for p in [self.process_send, self.process_receive]:
+            p.terminate()
+            p.join()
+        self.sock.close()
 
     def read(self) -> Optional[ByteString]:
         try:
@@ -54,36 +69,24 @@ class TCPLink:
         queue_receive: multiprocessing.Queue, sock: socket.socket, timeout: float
     ):
         try:
-            data = sock.recv(512)
-            queue_receive.put(data, timeout=timeout)
-        except (Full, KeyboardInterrupt):
-            pass
+            while True:
+                data = sock.recv(512)
+                queue_receive.put(data)
+        except ConnectionResetError:
+            raise ConnectionResetError("TCP control communication ended by Durin")
 
     @staticmethod
-    def _tcp_loop(
+    def _tcp_send(
         queue_send: multiprocessing.Queue,
-        queue_receive: multiprocessing.Queue,
+        sock: socket.socket,
         address: Tuple[str, int],
     ):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            sock.connect(address)
-        except (ConnectionRefusedError, OSError) as e:
-            raise ConnectionRefusedError(f"Cannot reach Durin at {address}")
-
-        logging.debug(f"TCP control communication connected to {address}")
-
         try:
             while True:
                 command = queue_send.get()
                 sock.send(command)
-                logging.debug("TCP sent command")
-                r = multiprocessing.Process(
-                    target=TCPLink._tcp_receive, args=(queue_receive, sock, 0.1)
-                )
-                r.start()
 
-        except ConnectionResetError as e:
+        except ConnectionResetError:
             raise ConnectionResetError("TCP control communication ended by Durin")
 
 
@@ -96,20 +99,20 @@ class UDPLink:
         self.buffer_size = buffer_size
         self.package_size = package_size
         self.buffer = multiprocessing.Queue(self.buffer_size)
-        self.thread = multiprocessing.Process(
-            target=self._loop_buffer,
-            args=(self.buffer,),
-        )
+        self.thread = None
 
     def start_com(self, host: str, ip: int):
+        self.thread = multiprocessing.Process(
+            target=self._loop_buffer,
+            args=(self.buffer, host, ip),
+        )
         self.thread.start()
-        self.buffer.put((host, ip))  # Put address in queue
 
-    def _loop_buffer(self, message_queue):
+    def _loop_buffer(self, message_queue, host, ip):
         count = 0
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        address = message_queue.get()
+        address = (host, ip)
         sock.bind(address)
 
         logging.debug(f"UDP control receiving on {address}")
