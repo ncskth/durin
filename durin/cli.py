@@ -3,64 +3,76 @@ import os
 import sys
 import numpy as np
 import functools
-import termios
 import time
-import tty
+import curses
 
 from .actuator import *
 from .common import *
 
 
-def parse(command: str, actuator: DurinActuator):
+def parse(command: str, actuator: DurinActuator) -> str:
     try:
         out = eval(command)
         if isinstance(out, Command):
             reply = actuator(out)
             if reply is not None:
-                print(reply)
+                return reply
+            else:
+                return "N/A"
         else:
-            print(f"Unknown command {out}")
+            return f"Unknown command {out}"
     except Exception as e:
-        print(e)
-    return True
+        return str(e)
 
 
 def run_cli(actuator, stdin=sys.stdin.fileno()):
-    print("Durin robot control environment")
-    print("Available commands:")
-    print("\t Move(x,y,a)")
     # TODO: Print list of commands
-    fd = os.fdopen(stdin)
 
-    tty.setcbreak(fd)
     try:
-        vs = ""
-        while True:
-            key = fd.read(1)
+        fd = os.fdopen(stdin)
+        screen = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
 
-            if ord(key) == 10:
+        initmsg = "Durin robot control environment\nAvailable commands:\n\tMove(x,y,a)"
+        screen.addstr(0, 0, initmsg)
+
+        vs = ""
+        i = 3
+        linestart = "> "
+        while True:
+            # Refresh
+            screen.addstr(i, 2, f"{linestart}{vs} ")
+            screen.addstr(i, 2, f"{linestart}{vs}")
+            screen.refresh()
+
+            key = screen.getch()
+
+            if key == curses.KEY_ENTER or int(key) == 10:
                 if len(vs) > 0:
-                    parse(vs, actuator)
+                    val = parse(vs, actuator)
                     vs = ""
-            elif ord(key) == 65:  # Up
+                    screen.addstr(i + 1, 0, str(val))
+                    i += 2
+            elif int(key) == 65:  # Up
                 actuator(Move(0, 500, 0))
-            elif ord(key) == 66:  # Down
+            elif int(key) == 66:  # Down
                 actuator(Move(0, -500, 0))
-            elif ord(key) == 68:  # Left
+            elif int(key) == 68:  # Left
                 actuator(Move(-500, 0, 0))
-            elif ord(key) == 67:  # Right
+            elif int(key) == 67:  # Right
                 actuator(Move(500, 0, 0))
-            elif ord(key) == 127:
-                print("\b", end="", flush=True)
+            elif key == curses.KEY_BACKSPACE or int(key) == 127:
                 vs = vs[:-1]
                 actuator(Move(0, 0, 0))
             else:
-                vs = vs + key
-                print(key, end="", flush=True)
-    except (KeyboardInterrupt, SystemExit):
-        print()
+                vs = vs + chr(key)
+    except (Exception, KeyboardInterrupt) as e:
+        pass
     finally:
-        tty.setraw(fd)
+        curses.nocbreak()
+        curses.echo()
+        curses.endwin()
 
 
 #### Figure out:
@@ -91,7 +103,6 @@ def show_content(filepath):
 
 
 def parse_line(cli_in):
-
     cmd_id = 0
     command = ""
     arg_nb = 0
@@ -135,3 +146,8 @@ def parse_line(cli_in):
     arg_array = np.array(arg_array, dtype=float)
 
     return command, arg_array, isvalid
+
+
+if __name__ == "__main__":
+
+    run_cli(lambda x: None)

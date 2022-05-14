@@ -15,8 +15,8 @@ class TCPLink:
         self,
         host: str,
         port: str,
-        buffer_size_send: int = 3,
-        buffer_size_receive: int = 1000,
+        buffer_size_send: int = 2,
+        buffer_size_receive: int = 100,
     ):
         self.address = (host, int(port))
         # Buffer towards Durin
