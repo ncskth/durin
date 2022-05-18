@@ -2,11 +2,6 @@ from abc import ABC, abstractmethod
 import time
 from typing import Generic, Tuple, TypeVar
 
-import torch
-import numpy as np
-import aestream
-
-
 from .ringbuffer import RingBuffer
 from .network import UDPLink
 from .common import *
@@ -26,20 +21,6 @@ class Sensor(ABC, Generic[T]):
     @abstractmethod
     def read(self) -> T:
         pass
-
-
-class DVSSensor(Sensor[torch.Tensor]):
-    def __init__(self, shape: Tuple[int, int], device: str, port: int):
-        self.source = aestream.UDPInput(shape, device, port)
-
-    def start_stream(self) -> torch.Tensor:
-        return self.source.start_stream()
-
-    def stop_stream(self) -> torch.Tensor:
-        return self.source.stop_stream()
-
-    def read(self) -> torch.Tensor:
-        return self.source.read()
 
 
 class DurinSensor(Sensor[Observation]):

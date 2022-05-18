@@ -1,16 +1,13 @@
 import logging
 import multiprocessing
-import socket
 import sys
 from typing import Optional, Tuple
 
 from .actuator import DurinActuator
-from .sensor import DurinSensor, Observation, DVSSensor
-from .network import DVSClient, TCPLink, UDPLink
+from .sensor import DurinSensor, Observation
+from .network import TCPLink, UDPLink
 from .common import *
 from .cli import *
-
-import torch
 
 DURIN_CONTROLLER_PORT_TCP = 1337
 DURIN_CONTROLLER_PORT_UDP = 4305
@@ -25,7 +22,7 @@ class Durin:
     Afterwards, commands can be sent to the robot and sensory data can be `.read` from the robot.
 
     Note that the sensor observation is described in the sensor.Observation class.
-    The DVS output is a 640x480 PyTorch tensor.
+    The DVS output is a 640x480 PyTorch tensor (if the aestream dependency is installed).
 
     Example:
 
@@ -41,6 +38,7 @@ class Durin:
         stream_command (Optional[StreamOn]): The command sent to the Durin microcontroller upon start. Can be customized, but uses sensible values by default.
         sensor_frequency (int): The update frequency of the sensor information in ms. Defaults to 10ms.
         spawn_cli (bool): Whether to spawn a background command line interface (CLI) in the terminal for manual interaction. Defaults to True.
+        disable_dvs (bool): Disables connection to DVS. Useful if necessary libraries are not installed. Defaults to False.
     """
 
     def __init__(
@@ -50,6 +48,7 @@ class Durin:
         stream_command: Optional[StreamOn] = None,
         sensor_frequency: int = 15,
         spawn_cli: bool = True,
+        disable_dvs: bool = False
     ):
         if stream_command is not None:
             self.stream_command = stream_command
@@ -66,10 +65,14 @@ class Durin:
         self.actuator = DurinActuator(self.tcp_link)
 
         # DVS
-        ip_list = durin_ip.split(".")
-        dvs_ip = ".".join(ip_list[:-1]) + f".{int(ip_list[-1]) + 10}"
-        self.dvs_client = DVSClient(dvs_ip, DURIN_DVS_PORT_TCP)
-        self.dvs = DVSSensor((640, 480), device, self.stream_command.port + 1)
+        if not disable_dvs:
+            import dvs
+            ip_list = durin_ip.split(".")
+            dvs_ip = ".".join(ip_list[:-1]) + f".{int(ip_list[-1]) + 10}"
+            self.dvs_client = dvs.DVSClient(dvs_ip, DURIN_DVS_PORT_TCP)
+            self.dvs = dvs.DVSSensor((640, 480), device, self.stream_command.port + 1)
+        else:
+            logging.debug("DVS output disabled")
 
         # CLI
         self.spawn_cli = spawn_cli
