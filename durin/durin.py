@@ -65,6 +65,7 @@ class Durin:
         self.actuator = DurinActuator(self.tcp_link)
 
         # DVS
+        self.disable_dvs = disable_dvs
         if not disable_dvs:
             import dvs
             ip_list = durin_ip.split(".")
@@ -92,14 +93,15 @@ class Durin:
         )
 
         # DVS
-        self.dvs.start_stream()
-        logging.debug(f"Durin DVS sending to {self.dvs_client.address}")
-        self.dvs_client.start_stream(
-            self.stream_command.host, self.stream_command.port + 1
-        )
-        logging.debug(
-            f"Durin DVS receiving on {self.stream_command.host}:{self.stream_command.port + 1}"
-        )
+        if not self.disable_dvs:
+            self.dvs.start_stream()
+            logging.debug(f"Durin DVS sending to {self.dvs_client.address}")
+            self.dvs_client.start_stream(
+                self.stream_command.host, self.stream_command.port + 1
+            )
+            logging.debug(
+                f"Durin DVS receiving on {self.stream_command.host}:{self.stream_command.port + 1}"
+            )
 
         # CLI
         if self.spawn_cli:
@@ -109,8 +111,9 @@ class Durin:
     def __exit__(self, e, b, t):
         self.tcp_link.stop_com()
         self.udp_link.stop_com()
-        self.dvs_client.stop_stream()
-        self.dvs.stop_stream()
+        if not self.disable_dvs:
+            self.dvs_client.stop_stream()
+            self.dvs.stop_stream()
 
         if self.spawn_cli:
             self.cli_process.kill()
@@ -122,7 +125,7 @@ class Durin:
     def update_frequency(self) -> float:
         return 1 / self.sensor.freq / 6
 
-    def read(self) -> Tuple[Observation, torch.Tensor]:
+    def read(self):
         """
         Retrieves sensor data from Durin
 
@@ -130,6 +133,6 @@ class Durin:
             Tuple of Observation, DVS tensors, and Command reply
         """
         durin = self.sensor.read()
-        dvs = self.dvs.read()
+        dvs = self.dvs.read() if self.disable_dvs is not None else None
         cmd = self.actuator.read()
         return (durin, dvs, cmd)

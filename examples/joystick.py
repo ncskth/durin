@@ -10,7 +10,7 @@ from durin.joystick import Gamepad
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-with Durin("172.16.223.95") as durin:
+with Durin("172.16.223.95", disable_dvs=True) as durin:
     with Gamepad() as gamepad:
         x = y = r = 0
         while True:
