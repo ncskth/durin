@@ -133,6 +133,9 @@ class Durin:
             Tuple of Observation, DVS tensors, and Command reply
         """
         durin = self.sensor.read()
-        dvs = self.dvs.read() if self.disable_dvs is not None else None
+        if not self.disable_dvs:
+            dvs = self.dvs.read()
+        else:
+            dvs = None
         cmd = self.actuator.read()
         return (durin, dvs, cmd)
