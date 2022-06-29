@@ -5,13 +5,16 @@ from durin.durin import *
 
 logging.getLogger().setLevel(logging.DEBUG)
 
-with Durin("172.16.223.95") as durin:
+with Durin("172.16.234.XX", disable_dvs=True) as durin:
 
     while True:
-        (obs, dvs, cmd) = durin.read()
-
-        # ...
         
-        # print("OBS: ", dvs.sum(), obs.imu.mean())
-
-        time.sleep(0.5)
+        # Move following a square-shaped trajectory
+        durin(Move(100,0,0))
+        time.sleep(1)
+        durin(Move(0,100,0))
+        time.sleep(1)
+        durin(Move(-100,0,0))
+        time.sleep(1)
+        durin(Move(0,-100,0))
+        time.sleep(1)
