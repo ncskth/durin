@@ -5,26 +5,11 @@ Please note that this is only the reference implementation for our interface. Se
 
 ## Installation
 
-We require GCC-10, [libcaer](https://gitlab.com/inivation/dv/libcaer/), [pip](https://pypi.org/project/pip/), [PyTorch](https://pytorch.org/), and [AEStream](https://github.com/norse/aestream/).
+We require a working Python installation with access to [pip](https://pypi.org/project/pip/).
+After that, installation is straight-forward:
 
-On Debian-like systems (like Ubuntu), you can install Durin with the following commands:
 ```bash
-sudo apt install gcc-10 libcaer-dev python3-pip
-pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
-pip install --upgrade pip
-pip install git+https://github.com/norse/aestream
 pip install git+https://github.com/ncskth/durin
-```
-
-If you have network problems at Capocaccia, run the following:
-```bash
-export NCS_HOST=10.1.18.67
-sudo apt install gcc-10 libcaer-dev python3-pip
-pip install torch --extra-index-url https://download.pytorch.org/whl/cpu --extra-index-url=http://$NCS_HOST:8000/ --trusted-host=$NCS_HOST
-pip install --upgrade pip
-pip install git+https://github.com/norse/aestream --extra-index-url=http://$NCS_HOST:8000/ --trusted-host=$NCS_HOST
-pip install git+https://github.com/ncskth/durin --extra-index-url=http://$NCS_HOST:8000/ --trusted-host=$NCS_HOST
-
 ```
 
 ## Usage
@@ -39,7 +24,7 @@ from durin.durin import *
 # The ip address to Durin is 172.16.223.9X, where X is the number of the robot (1, 2, or 5).
 durin_ip = "172.16.223.91"
 
-with Durin(durin_ip) as durin:
+with Durin(durin_ip, disable_dvs=True) as durin:
 
     while True:
         # Get observation
@@ -66,6 +51,7 @@ The `durin.read()` method will give you access to
     * `.bat` Battery value
 2. A 640x480 DVS [PyTorch](pytorch.org) tensor
     * This tensor has buffered/stacked events since the last `.read()` command.
+    * Note that this is **only** available if the Durin has a DVS sensor installed
 3. Replies from the robot, following any `Poll` commands
     * This is specified in the protocol datasheet below - feel free to ignore
 
