@@ -6,8 +6,9 @@ import functools
 import time
 import curses
 
-from .actuator import *
-from .common import *
+from durin.actuator import Move
+
+from durin.actuator import *
 
 
 def parse(command: str, actuator: DurinActuator) -> str:

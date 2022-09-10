@@ -3,55 +3,30 @@ from multiprocessing import Process
 import time
 import sys
 
-import torch
+import numpy as np
+from durin.ui import DurinUI
 
-import PySimpleGUI as sg
-
-from durin import *
-
-
-# from PySide6.QtCore import Qt
-
-# from PySide6.QtGui import QImage
-
-# from PySide6.QtWidgets import QApplication, QLabel, QVBoxLayout, QPushButton, QWidget
-
-logging.getLogger().setLevel(logging.DEBUG)
+from durin import ui
 
 
-ip = "172.16.222.94"
+if __name__ == "__main__":
 
-# All the stuff inside your window.
-layout = [  
-    [sg.Text('Durin at {ip}')],
-            [sg.Text('Enter something on Row 2'), sg.InputText()],
-            [sg.Button('Ok'), sg.Button('Cancel')] ]
+    # We start a connection to the robot
+    # and can now read from and write to the robot via the variable "durin"
+    # Notice the UI class, which differs from the (more efficient) standalone Durin interface
+    with DurinUI("durin5.local") as durin:
+        # Loop until the user quits
+        is_running = True
+        while is_running:
 
-# Create the Window
-window = sg.Window('Window Title', layout)
-# Event Loop to process "events" and get the "values" of the inputs
-while True:
-    event, values, _ = window.read()
-    if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
-        break
-    print('You entered ', values[0])
+            # Read a value from durin
+            # - obs = Robot sensor observations
+            # - dvs = Robot DVS data (if any)
+            # - cmd = Robot responses to commands
+            (obs, dvs, cmd) = durin.read()
 
-window.close()
+            # We can now update our display with the observations
+            durin.render_sensors(obs)
 
-# # while True:
-# #     label.setText("Hello")
-
-# #     try:
-# #         time.sleep(0.1)
-# #     except KeyboardInterrupt:
-# #         pass
-
-# # with Durin("172.16.222.94") as durin:
-# #     while True:
-# #         (obs, dvs) = durin.sense()
-
-# #         print("OBS: ", dvs.sum(), obs.imu.mean())
-
-# #         time.sleep(0.5)
-
-# gui_thread.terminate()
+            # Read user input and quit, if asked
+            is_running = durin.read_user_input()

@@ -1,6 +1,6 @@
 import argparse
 
-from durin.actuator import *
+from durin.cli import run_cli
 from durin.durin import Durin
 
 if __name__ == "__main__":

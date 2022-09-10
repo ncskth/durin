@@ -8,7 +8,6 @@ import time
 from typing import Optional
 
 from durin.controller import dvs
-from durin.network import DVSClient
 
 
 class Streamer:

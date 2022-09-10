@@ -1,3 +1,5 @@
 inputs
 numpy
 pyusb
+pysdl2
+pysdl2-dll

@@ -5,7 +5,6 @@ import aestream
 from durin.sensor import Sensor
 
 
-
 class DVSSensor(Sensor[torch.Tensor]):
     def __init__(self, shape: Tuple[int, int], device: str, port: int):
         self.source = aestream.UDPInput(shape, device, port)

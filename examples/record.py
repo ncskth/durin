@@ -1,18 +1,16 @@
 import logging
 import time
+from durin.actuator import Move
 
 import torch
 
-from durin.actuator import *
-from durin.common import SENSORS
-from durin.durin import Durin
-from durin.visuals import launch_visual
+from durin.durin import *
 
-# logging.getLogger().setLevel(logging.DEBUG)
 
 def cmd(x):
     x = torch.sin(torch.as_tensor(x)) * 200
     return Move(0, x, 0)
+
 
 with Durin("172.16.223.95") as durin:
 
@@ -25,12 +23,12 @@ with Durin("172.16.223.95") as durin:
 
         # Pause to loop at 200Hz
         time.sleep(0.005)
-        
+
         time_now = time.time()
         diff = time_now - time_start
         durin(cmd(diff))
         if time_now - time_start >= 10:
             break
-    
+
     video = torch.stack(tensors)
     torch.save(video, "moving.dat")

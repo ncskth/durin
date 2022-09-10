@@ -6,7 +6,7 @@ import numpy as np
 from dataclasses import dataclass
 from typing import List, Optional
 from actuator import *
-from common import *
+from durin.controller.common import *
 
 T_WAIT = 0.1
 

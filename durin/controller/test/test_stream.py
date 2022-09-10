@@ -1,8 +1,7 @@
 from multiprocessing import Process
 import multiprocessing
-from multiprocessing.sharedctypes import Value
 from time import sleep
-from durin.controller import client, server
+from durin.controller import server
 
 
 class MockStreamer(server.Streamer):

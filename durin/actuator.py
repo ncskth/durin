@@ -1,12 +1,15 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import dataclass
-import ipaddress
-from queue import Full
-from typing import ByteString, TypeVar
+import queue
 import struct
+from typing import ByteString, TypeVar
 
-from .network import TCPLink, UDPLink
-from .common import *
+import numpy as np
+from durin import io
+
+from durin.io import SENSORS
+from durin.io.network import TCPLink
+from durin.controller import *
 
 
 T = TypeVar("T")
@@ -33,7 +36,15 @@ class PowerOff(Command):
 
 
 class Move(Command):
-    def __init__(self, vel_x, vel_y, rot):
+    def __init__(self, vel_x: int, vel_y: int, rot: int):
+        """
+        Moves Durin
+
+        Arguments:
+            vel_x (int): Velocity in the x axis
+            vel_y (int): Velocity in the y axis
+            rot (int): Degrees per second
+        """
         self.cmd_id = 2
         self.vel_x = int(vel_x)
         self.vel_y = int(vel_y)
@@ -49,10 +60,13 @@ class Move(Command):
             struct.pack("<h", self.vel_y)
         )  # short (int16) little endian
         data[5:7] = bytearray(
-            struct.pack("<h", self.rot)
+            struct.pack("<h", -self.rot)
         )  # short (int16) little endian
 
         return data
+
+    def __repr__(self) -> str:
+        return f"Move({self.vel_x}, {self.vel_y}, {-self.rot})"
 
 
 class MoveWheels(Command):
@@ -143,7 +157,7 @@ class DurinActuator:
 
         try:
             self.tcp_link.send(command_bytes, timeout=timeout)
-        except Full:
+        except queue.Full:
             pass
 
         return None
@@ -151,6 +165,12 @@ class DurinActuator:
     def read(self):
         reply = self.tcp_link.read()
         if reply is not None:
-            return decode(reply)
+            return io.decode(reply)
         else:
             return None
+
+    def start(self):
+        self.tcp_link.start()
+
+    def stop(self):
+        self.tcp_link.stop()
