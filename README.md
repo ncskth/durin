@@ -19,12 +19,13 @@ The interface is meant to be used via Python. More examples can be found in the 
 
 ```python
 from durin.actuator import *
-from durin.durin import *
+from durin.ui import *
 
 # The ip address to Durin is 172.16.223.9X, where X is the number of the robot (1, 2, or 5).
 durin_ip = "172.16.223.91"
 
-with Durin(durin_ip, disable_dvs=True) as durin:
+# This starts Durin without DVS input (by default)
+with DurinUI(durin_ip) as durin:
 
     while True:
         # Get observation
@@ -35,7 +36,7 @@ with Durin(durin_ip, disable_dvs=True) as durin:
         # Move durin 100 units left with 0 forward/backward motion and 0 rotation
         command = Move(100, 0, 0)
 
-        # Send command to Durin
+        # Send a command to Durin
         durin(command)
 
         # ... this loop continues forever!
@@ -46,9 +47,9 @@ with Durin(durin_ip, disable_dvs=True) as durin:
 
 The `durin.read()` method will give you access to 
 
-1. An `Observation` object containing
+1. An `Observation` from the robot sensors object containing
     * `.tof` Time of Flight sensors
-    * `.bat` Battery value
+    * `.charge` Battery charge
 2. A 640x480 DVS [PyTorch](pytorch.org) tensor
     * This tensor has buffered/stacked events since the last `.read()` command.
     * Note that this is **only** available if the Durin has a DVS sensor installed
