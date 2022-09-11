@@ -34,7 +34,7 @@ def to_rgba(value):
 
 def tof_sensor_to_pixels(matrix, size: int = 128):
     pixels = np.empty((size, size))
-    width = 128 // len(matrix)
+    width = size // len(matrix)
     for idr, row in enumerate(matrix):
         for idx, element in enumerate(row):
             pixels[
@@ -99,7 +99,7 @@ class DurinUI(Durin):
         self.gamepad.stop()
         return super().__exit__(e, b, t)
 
-    def read_user_input(self):
+    def read_user_input(self, allow_movement: bool = True):
         events = sdl2.ext.get_events()
         # self.horizontal = int(self.horizontal * self.tau)
         # self.vertical = int(self.vertical * self.tau)
@@ -162,7 +162,8 @@ class DurinUI(Durin):
             elif event.type == sdl2.SDL_MOUSEMOTION:
                 self.rot = int(self.rot + min(10, max(-10, event.motion.xrel)) * 2)
 
-        self(Move(self.horizontal, self.vertical, self.rot))
+        if allow_movement:
+            self(Move(self.horizontal, self.vertical, self.rot))
         return True
 
     def render_sensors(self, obs, size: int = 156):

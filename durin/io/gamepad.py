@@ -1,9 +1,6 @@
 import multiprocessing
-from queue import Empty
-from typing import Optional, Tuple
 
-
-from inputs import get_gamepad
+from inputs import get_gamepad, UnpluggedError
 
 from durin.io.runnable import RunnableProducer
 
@@ -27,6 +24,13 @@ class Gamepad(RunnableProducer):
             return x
         else:
             return ((x - MID - MIN) / ABS) * 1000
+
+    def start(se1lf):
+        try:
+            get_gamepad()
+            super().start()
+        except UnpluggedError:
+            pass
 
     def produce(self, values):
         array = values.get_obj()

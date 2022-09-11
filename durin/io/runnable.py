@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import multiprocessing
+from multiprocessing.sharedctypes import Value
 import queue
 import time
 from typing import Any
@@ -20,6 +21,8 @@ class Runnable:
         try:
             while not event.wait(0):
                 self.run(*args[1:])
+        except ValueError:
+            pass
         except KeyboardInterrupt:
             pass
 
@@ -28,7 +31,8 @@ class Runnable:
 
     def stop(self):
         self.event.set()
-        self.thread.terminate()
+        if self.thread.is_alive():
+            self.thread.terminate()
 
 
 class RunnableConsumer(Runnable):
