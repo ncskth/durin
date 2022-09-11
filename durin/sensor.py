@@ -36,7 +36,7 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
     def __init__(self, link: UDPLink):
         self.link = link
         context = multiprocessing.get_context("spawn")
-        self.tof = context.Array("d", 8 * 8 * 8)
+        self.tof = context.Array("f", 8 * 8 * 8)
         self.charge = context.Value("f", 0)
         self.voltage = context.Value("f", 0)
         self.imu = context.Array("d", 3 * 3)
@@ -58,7 +58,7 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
         )
 
     def read(self) -> Observation:
-        tof = np.frombuffer(self.tof.get_obj()).reshape((8, 8, 8))
+        tof = np.frombuffer(self.tof.get_obj(), dtype=np.float32).reshape((8, 8, 8))
         imu = np.frombuffer(self.imu.get_obj()).reshape((3, 3))
         frequency = 1 / (np.frombuffer(self.ringbuffer.get_obj()).mean() + 1e-7)
         return Observation(
