@@ -165,13 +165,13 @@ class DurinUI(Durin):
         self(Move(self.horizontal, self.vertical, self.rot))
         return True
 
-    def render_sensors(self, obs, size: int = 128):
+    def render_sensors(self, obs, size: int = 156):
         tofs = (np.tanh((obs.tof / 500)) * 255).astype(np.int32)
         width, height = self.pixels.shape
         for idt, tof in enumerate(tofs):
             xr, yr = SENSOR_PLACEMENTS[idt]
             x = int((xr * (width - size)))
             y = int((yr * (height - size)))
-            self.pixels[x : x + size, y : y + size] = tof_sensor_to_pixels(tof)
+            self.pixels[x : x + size, y : y + size] = tof_sensor_to_pixels(tof, size)
 
         self.window.refresh()
