@@ -1,10 +1,8 @@
-import logging
 import time
-from durin.actuator import Move
 
 import torch
 
-from durin.durin import *
+from durin import *
 
 
 def cmd(x):

@@ -1,12 +1,6 @@
 import time
-import pdb
 import socket
-import numpy as np
-
-from dataclasses import dataclass
-from typing import List, Optional
-from actuator import *
-from durin.controller.common import *
+from durin import *
 
 T_WAIT = 0.1
 
@@ -15,7 +9,7 @@ def example_moving(durin):
     # Move Durin using robcentric command
     (vel_x, vel_y, rot) = (-1, 2, 3)
     print(f"move_robcentric {vel_x} {vel_y} {rot}")
-    reply = durin(MoveRobcentric(vel_x, vel_y, rot))
+    reply = durin(Move(vel_x, vel_y, rot))
     print(reply)
     time.sleep(T_WAIT)
 
@@ -29,12 +23,12 @@ def example_moving(durin):
     # Move Durin using robcentric command
     (vel_x, vel_y, rot) = (6,5,2)
     print(f"move_robcentric {vel_x} {vel_y} {rot}")
-    reply = durin(MoveRobcentric(vel_x, vel_y, rot))
+    reply = durin(Move(vel_x, vel_y, rot))
     print(reply)
     time.sleep(T_WAIT)
 
     # Powering durin off
-    reply = durin(Request('power_off'))
+    reply = durin(PowerOff())
     time.sleep(T_WAIT)
 
 def example_polling(durin):

@@ -1,13 +1,4 @@
-import logging
-from multiprocessing import Process
-import time
-import sys
-
-import numpy as np
-from durin.ui import DurinUI
-
-from durin import ui
-
+from durin import DurinUI
 
 if __name__ == "__main__":
 

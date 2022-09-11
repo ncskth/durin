@@ -18,13 +18,12 @@ The interface is meant to be used via Python. More examples can be found in the 
 
 
 ```python
-from durin.actuator import *
-from durin.ui import *
+from durin import *
 
 # The ip address to Durin is 172.16.223.9X, where X is the number of the robot (1, 2, or 5).
 durin_ip = "172.16.223.91"
 
-# This starts Durin without DVS input (by default)
+# This connects to durin and displays a user interface (UI)
 with DurinUI(durin_ip) as durin:
 
     while True:

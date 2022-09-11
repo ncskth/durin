@@ -1,8 +1,6 @@
 import time
-import logging
 
-from durin.actuator import *
-from durin.durin import *
+from durin import *
 
 if __name__ == "__main__":
 
