@@ -78,9 +78,7 @@ class DurinUI(Durin):
     def __enter__(self):
         sdl2.ext.init()
 
-        self.window = sdl2.ext.Window(
-            "Durin Dashboard", size=(1000, 900)  # , flags=sdl2.SDL_WINDOW_INPUT_GRABBED
-        )
+        self.window = sdl2.ext.Window("Durin Dashboard", size=(1000, 900))
         self.window.show()
 
         factory = sdl2.ext.SpriteFactory(sdl2.ext.SOFTWARE)
@@ -166,7 +164,7 @@ class DurinUI(Durin):
             self(Move(self.horizontal, self.vertical, self.rot))
         return True
 
-    def render_sensors(self, obs, size: int = 156):
+    def render_sensors(self, obs, size: int = 180):
         tofs = (np.tanh((obs.tof / 500)) * 255).astype(np.int32)
         width, height = self.pixels.shape
         for idt, tof in enumerate(tofs):

@@ -18,7 +18,6 @@ if __name__ == "__main__":
         # Loop until the user quits
         is_running = True
         while is_running:
-
             # Read a value from durin
             # - obs = Robot sensor observations
             # - dvs = Robot DVS data (if any)
@@ -32,16 +31,20 @@ if __name__ == "__main__":
             is_running = durin.read_user_input(allow_movement=False)
 
             # We can now update our neural network and send the actuator signal to Durin
-            left_tof = obs.tof[1].mean()
-            right_tof = obs.tof[6].mean()
-            input_tensor = torch.tensor([left_tof, right_tof])
+            # - Take the center pixel of the 2nd sensor in a (8, 8) matrix
+            left_tof = obs.tof[1, 3, 3]
+            # - Take the center pixel of the 7th sensor in a (8, 8) matrix
+            right_tof = obs.tof[6, 3, 3]
 
             # We normalize the ToF information to [0;1] and flip it numerically
-            input_tensor = torch.tanh(input_tensor / 1e4) * -1 + 1
+            # (so, close = high values, far = low values)
+            input_tensor = torch.tanh(torch.tensor([left_tof, right_tof]) / 1e3) * -1 + 1
 
             # We then run the network (in inference mode)
             with torch.inference_mode():
+                # Update the network with the input and read the output
                 output, network_state = network(input_tensor, network_state)
-                output = output * 30 # Scale the output
-                left, right = output
-                durin(Move(0, output.mean() * (left - right).sign(), left - right))
+                output = output * 100 # Scale the output to fit motor range [0;500]
+                left, right = output  # Separate left and right outputs
+                command = MoveWheels(left, right, right, left)
+                durin(command)  # Send the command to Durin

@@ -70,22 +70,42 @@ class Move(Command):
 
 
 class MoveWheels(Command):
-    def __init__(self, m1, m2, m3, m4):
+    """
+    Moves individual wheels on Durin
+
+    Arguments:
+        ne (float): North east wheel
+        nw (float): North west wheel
+        sw (float): South west wheel
+        se (float): South east wheel
+    """
+
+    def __init__(self, ne, nw, sw, se):
         self.cmd_id = 3
-        self.m1 = int(m1)
-        self.m2 = int(m2)
-        self.m3 = int(m3)
-        self.m4 = int(m4)
+        self.ne = int(ne)
+        self.nw = int(nw)
+        self.sw = int(sw)
+        self.se = int(se)
 
     def encode(self):
         data = bytearray([0] * 9)
         data[0] = self.cmd_id
-        data[1:3] = bytearray(struct.pack("<h", self.m1))  # short (int16) little endian
-        data[3:5] = bytearray(struct.pack("<h", self.m2))  # short (int16) little endian
-        data[5:7] = bytearray(struct.pack("<h", self.m3))  # short (int16) little endian
-        data[7:9] = bytearray(struct.pack("<h", self.m4))  # short (int16) little endian
-
+        data[1:3] = bytearray(
+            struct.pack("<h", -self.se)
+        )  # short (int16) little endian
+        data[3:5] = bytearray(
+            struct.pack("<h", self.sw)
+        )  # short (int16) little endian
+        data[5:7] = bytearray(
+            struct.pack("<h", -self.ne)
+        )  # short (int16) little endian
+        data[7:9] = bytearray(
+            struct.pack("<h", self.nw)
+        )  # short (int16) little endian
         return data
+
+    def __repr__(self) -> str:
+        return f"MoveWheels({self.ne}, {self.nw}, {self.sw}, {self.se})"
 
 
 class PollAll(Command):
