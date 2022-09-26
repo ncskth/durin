@@ -3,16 +3,24 @@ from dataclasses import dataclass
 import queue
 import struct
 from typing import ByteString, TypeVar
+from pathlib import Path
 
-import numpy as np
+import capnp
+
 from durin import io
-
 from durin.io import SENSORS
 from durin.io.network import TCPLink
 from durin.controller import *
 
+schema = capnp.load(str((Path(__file__).parent / "schema.capnp").absolute()))
 
 T = TypeVar("T")
+
+
+def _wrap_base(message, field):
+    base = schema.DurinBase.new_message()
+    setattr(base, field, message)
+    return base.to_bytes()
 
 
 @dataclass
@@ -29,10 +37,7 @@ class PowerOff(Command):
         self.cmd_id = 1
 
     def encode(self):
-        data = bytearray([0] * 1)
-        data[0] = self.cmd_id
-
-        return data
+        return _wrap_base(schema.PowerOff.new_message(), "powerOff")
 
 
 class Move(Command):
@@ -51,19 +56,10 @@ class Move(Command):
         self.rot = int(rot)
 
     def encode(self):
-        data = bytearray([0] * 7)
-        data[0] = self.cmd_id
-        data[1:3] = bytearray(
-            struct.pack("<h", self.vel_x)
-        )  # short (int16) little endian
-        data[3:5] = bytearray(
-            struct.pack("<h", self.vel_y)
-        )  # short (int16) little endian
-        data[5:7] = bytearray(
-            struct.pack("<h", -self.rot)
-        )  # short (int16) little endian
-
-        return data
+        message = schema.SetRobotVelocity.new_message(
+            velocityXMms=self.vel_x, velocityYMms=self.vel_y, rotationDegs=self.rot
+        )
+        return _wrap_base(message, "setRobotVelocity")
 
     def __repr__(self) -> str:
         return f"Move({self.vel_x}, {self.vel_y}, {-self.rot})"
@@ -71,67 +67,49 @@ class Move(Command):
 
 class MoveWheels(Command):
     """
-    Moves individual wheels on Durin
+    Moves individual wheels on Durin. All units are in millimeters/second
 
     Arguments:
-        ne (float): North east wheel
-        nw (float): North west wheel
-        sw (float): South west wheel
-        se (float): South east wheel
+        front_left (float): Front left wheel
+        front_right (float): Front right
+        back_left (float): Back left wheel
+        back_right (float): Back right wheel
     """
 
-    def __init__(self, ne, nw, sw, se):
+    def __init__(self, front_left, front_right, back_left, back_right):
         self.cmd_id = 3
-        self.ne = int(ne)
-        self.nw = int(nw)
-        self.sw = int(sw)
-        self.se = int(se)
+        self.front_left = int(front_left)
+        self.front_right = int(front_right)
+        self.back_left = int(back_left)
+        self.back_right = int(back_right)
 
     def encode(self):
-        data = bytearray([0] * 9)
-        data[0] = self.cmd_id
-        data[1:3] = bytearray(
-            struct.pack("<h", -self.se)
-        )  # short (int16) little endian
-        data[3:5] = bytearray(
-            struct.pack("<h", self.sw)
-        )  # short (int16) little endian
-        data[5:7] = bytearray(
-            struct.pack("<h", -self.ne)
-        )  # short (int16) little endian
-        data[7:9] = bytearray(
-            struct.pack("<h", self.nw)
-        )  # short (int16) little endian
-        return data
+        return _wrap_base(
+            schema.SetWheelVelocity.new_message(
+                wheelFrontLeftMms=self.front_left,
+                wheelFrontRightMms=self.front_right,
+                wheelBackLeftMms=self.back_left,
+                wheelBackRightMms=self.back_right,
+            )
+        )
 
     def __repr__(self) -> str:
-        return f"MoveWheels({self.ne}, {self.nw}, {self.sw}, {self.se})"
+        return f"MoveWheels({self.front_left}, {self.front_right}, {self.back_left}, {self.back_right})"
 
 
-class PollAll(Command):
-    def __init__(self):
-        self.cmd_id = 16
+# class PollSensor(Command):
+#     def __init__(self, sensor_id):
+#         self.cmd_id = 17
+#         self.sensor_id = int(sensor_id)
 
-    def encode(self):
-        data = bytearray([0] * 1)
-        data[0] = self.cmd_id
+#     def encode(self):
+#         data = bytearray([0] * 2)
+#         data[0] = self.cmd_id
+#         data[1:2] = self.sensor_id.to_bytes(
+#             1, "little"
+#         )  # integer (uint8) little endian
 
-        return data
-
-
-class PollSensor(Command):
-    def __init__(self, sensor_id):
-        self.cmd_id = 17
-        self.sensor_id = int(sensor_id)
-
-    def encode(self):
-        data = bytearray([0] * 2)
-        data[0] = self.cmd_id
-        data[1:2] = self.sensor_id.to_bytes(
-            1, "little"
-        )  # integer (uint8) little endian
-
-        return data
+#         return data
 
 
 class StreamOn(Command):
@@ -140,18 +118,14 @@ class StreamOn(Command):
         self.host = host
         self.port = port
         self.period = period
+        # TODO: Set streaming frequency
 
     def encode(self):
-        data = bytearray([0] * 9)
-        data[0] = self.cmd_id
-        host = self.host.split(".")
-        data[1] = int(host[0])
-        data[2] = int(host[1])
-        data[3] = int(host[2])
-        data[4] = int(host[3])
-        data[5:7] = self.port.to_bytes(2, "little")
-        data[7:9] = self.period.to_bytes(2, "little")
-        return data
+        enable_message = schema.EnableStreaming.new_message()
+        udpOnly = enable_message.destination.init("udpOnly")
+        udpOnly.ip = list(map(lambda x: int(x), self.host.split(".")))
+        udpOnly.port = self.port
+        return _wrap_base(enable_message, "enableStreaming")
 
 
 class StreamOff(Command):
@@ -159,10 +133,7 @@ class StreamOff(Command):
         self.cmd_id = 19
 
     def encode(self):
-        data = bytearray([0] * 1)
-        data[0] = self.cmd_id
-
-        return data
+        return _wrap_base(schema.DisableStreaming.new_message())
 
 
 class DurinActuator:

@@ -114,8 +114,8 @@ class UDPLink(RunnableProducer):
     def produce(self, sock):
         try:
             buffer, _ = sock.recvfrom(self.package_size)
-            sensor_id, reply = io.decode(buffer)
-            return (sensor_id, reply)
+            message = io.decode(buffer)
+            return message
         except BlockingIOError:
             return None
 

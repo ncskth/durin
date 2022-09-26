@@ -90,18 +90,15 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
         ringbuffer_idx,
         timestamp_update,
     ):
-        (sensor_id, data) = item
-        if sensor_id >= SENSORS["tof_a"] and sensor_id <= SENSORS["tof_d"]:
-            # Multiply by two since each package contains data from two sensors
-            idx = (sensor_id - SENSORS["tof_a"]) * 2
-            # We assign a flattened (2, 8, 8) array
-            tof.get_obj()[idx * 64 : (idx + 2) * 64] = data.reshape(-1)
-        if sensor_id == SENSORS["misc"]:
-            charge.value = data[0]
-            voltage.value = data[1]
-            imu.get_obj()[:] = data[2].reshape(-1)
-        # if sensor_id == SENSORS["uwb"]:
-        #     obs.uwb[:] = data
+        which = item.which()
+        if which == "tofObservations":
+            for obs in item.tofObservations:
+                data = np.array(obs.ranges).reshape(8, 8)
+                tof.get_obj()[obs.id * 64: (obs.id + 1) * 64] = data
+        elif which == "systemStatus":
+            charge.value = item.systemStatus.batteryPercent
+            voltage.value = item.systemStatus.batteryMv
+        # TODO: Add more sensors
 
         # Update Hz
         time_now = time.time()
