@@ -23,6 +23,8 @@ def decode(buffer) -> List[schema.DurinBase]:
     # TODO: Use packed version later
     try:
         return next(schema.DurinBase.from_bytes(buffer).gen)
+    except ValueError as e:
+        logging.warn("Error in decoded message", e)
     except capnp.lib.capnp.KjException as e:
         logging.warn("Failed to deserialize", e)
         return None
