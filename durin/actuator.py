@@ -155,7 +155,6 @@ class DurinActuator:
         self.tcp_link = tcp_link
 
     def __call__(self, action: Command, timeout: float = 0.05):
-        print("sending", action)
         command_bytes = action.encode()
 
         try:

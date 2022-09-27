@@ -44,6 +44,7 @@ class Gamepad(RunnableProducer):
                         array[1] = state
                     elif "ABS_RX" in stick:
                         array[2] = state
+            return Gamepad.norm(array[0]), Gamepad.norm(array[1]), Gamepad.norm(array[2])
         except UnpluggedError:
             pass
-        return Gamepad.norm(array[0]), Gamepad.norm(array[1]), Gamepad.norm(array[2])
+        return None

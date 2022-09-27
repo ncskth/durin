@@ -26,6 +26,8 @@ SENSOR_PLACEMENTS = [
     (0.02, 0.5),
 ]
 
+MAX_WHEEL = 600
+
 
 def to_rgba(value):
     alpha = 255
@@ -100,9 +102,6 @@ class DurinUI(Durin):
 
     def read_user_input(self, allow_movement: bool = True):
         events = sdl2.ext.get_events()
-        # self.horizontal = int(self.horizontal * self.tau)
-        # self.vertical = int(self.vertical * self.tau)
-        self.rot = self.rot * self.tau
 
         # Gamepad
         if not self.gamepad.queue.empty():
