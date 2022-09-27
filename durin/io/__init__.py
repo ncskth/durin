@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import List
 
@@ -20,4 +21,8 @@ schema = capnp.load(str((Path(__file__).parent.parent / "schema.capnp").absolute
 
 def decode(buffer) -> List[schema.DurinBase]:
     # TODO: Use packed version later
-    return next(schema.DurinBase.from_bytes(buffer).gen)
+    try:
+        return next(schema.DurinBase.from_bytes(buffer).gen)
+    except capnp.lib.capnp.KjException as e:
+        logging.warn("Failed to deserialize", e)
+        return None

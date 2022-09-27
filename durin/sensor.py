@@ -92,8 +92,8 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
     ):
         which = item.which()
         if which == "tofObservations":
-            for obs in item.tofObservations:
-                data = np.array(obs.ranges).reshape(8, 8)
+            for obs in item.tofObservations.observations:
+                data = np.array(obs.ranges)
                 tof.get_obj()[obs.id * 64: (obs.id + 1) * 64] = data
         elif which == "systemStatus":
             charge.value = item.systemStatus.batteryPercent

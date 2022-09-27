@@ -21,6 +21,7 @@ def _wrap_base(message, field):
     base = schema.DurinBase.new_message()
     setattr(base, field, message)
     return base.to_bytes()
+    
 
 
 @dataclass
@@ -38,6 +39,19 @@ class PowerOff(Command):
 
     def encode(self):
         return _wrap_base(schema.PowerOff.new_message(), "powerOff")
+
+
+class SetLed(Command):
+    def __init__(self, red: int, green: int, blue: int):
+        self.red = red
+        self.green = green
+        self.blue = blue
+
+    def encode(self):
+        return _wrap_base(
+            schema.SetLed.new_message(ledR=self.red, ledG=self.green, ledB=self.blue),
+            "setLed",
+        )
 
 
 class Move(Command):
@@ -141,10 +155,8 @@ class DurinActuator:
         self.tcp_link = tcp_link
 
     def __call__(self, action: Command, timeout: float = 0.05):
+        print("sending", action)
         command_bytes = action.encode()
-        reply = []
-        if command_bytes[0] == 0:
-            return reply
 
         try:
             self.tcp_link.send(command_bytes, timeout=timeout)

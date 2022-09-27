@@ -26,14 +26,17 @@ def get_ip(ip):
 class TCPProducer(RunnableProducer):
     def produce(self, sock):
         try:
-            return sock.recv(512)
+            header = sock.recv(3)
+            size = int.from_bytes(header[1:], 'little')
+            return sock.recv(size)
         except BlockingIOError:
             return None
 
 
 class TCPConsumer(RunnableConsumer):
     def consume(self, event, sock):
-        sock.send(event)
+        bs = b"\n" + len(event).to_bytes(2, "little") + event
+        sock.send(bs)
 
 
 class TCPLink:
@@ -96,10 +99,10 @@ class UDPLink(RunnableProducer):
     """
 
     def __init__(
-        self, host: str, ip: str, package_size: int = 512, buffer_size: int = 100
+        self, host: str, ip: str, packet_size: int = 512, buffer_size: int = 100
     ):
         self.buffer_size = buffer_size
-        self.package_size = package_size
+        self.packet_size = packet_size
         context = multiprocessing.get_context("spawn")
         self.buffer = context.Queue(self.buffer_size)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -113,9 +116,9 @@ class UDPLink(RunnableProducer):
 
     def produce(self, sock):
         try:
-            buffer, _ = sock.recvfrom(self.package_size)
-            message = io.decode(buffer)
-            return message
+            buffer = sock.recv(self.packet_size)
+            size = int.from_bytes(buffer[1:3], "little")
+            return io.decode(buffer[3 : 3 + size])
         except BlockingIOError:
             return None
 

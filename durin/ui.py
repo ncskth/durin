@@ -1,3 +1,4 @@
+import math
 import sdl2.ext
 
 import numpy as np
@@ -34,7 +35,7 @@ def to_rgba(value):
 
 def tof_sensor_to_pixels(matrix, size: int = 128):
     pixels = np.empty((size, size))
-    width = size // len(matrix)
+    width = math.ceil(size / len(matrix))
     for idr, row in enumerate(matrix):
         for idx, element in enumerate(row):
             pixels[
