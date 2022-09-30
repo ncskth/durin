@@ -17,20 +17,19 @@ jobs:
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
-        python-version: "3.10"
-    
+      python-version: "3.10"
 
-      - name: execute py script # run the run.py to get the latest data
-        run: |
-          python UpdateVersionNumber.py
+    - name: execute py script # run the run.py to get the latest data
+      run: |
+        python UpdateVersionNumber.py
 
 
-      -name: commit file
-        needs: execute py script
-        run: |
-          git add setup.py
-          git commit -m "incremented version number"
-          git push origin master
+    - name: commit file
+      needs: execute py script
+      run: |
+        git add setup.py
+        git commit -m "incremented version number"
+        git push origin master
 
     #get change the version number and commit. Dont do it if there is a tag. 
     #- name: Commit with tag
