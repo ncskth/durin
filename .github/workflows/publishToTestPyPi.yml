@@ -5,29 +5,37 @@ on: push
 
 
 
+
+
 jobs:
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
     runs-on: ubuntu-latest
-
-  
-
-
-
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v3
+    
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
+    
+
+      - name: execute py script # run the run.py to get the latest data
+        run: |
+          python UpdateVersionNumber.py
+
+
+      -name: commit file
+        needs: execute py script
+        run: |
+          git add setup.py
+          git commit -m "incremented version number"
+          git push origin master
 
     #get change the version number and commit. Dont do it if there is a tag. 
-    - name: Commit with tag
-      uses:
-      with:
-
-
-
+    #- name: Commit with tag
+      #uses:
+      #with:
 
     - name: Install pypa/build
       run: python -m pip install build --user
@@ -36,17 +44,13 @@ jobs:
     - name: Build a binary wheel and a source tarball
       run: python -m build --sdist --wheel --outdir dist/ .
 
-
-
-
-
     # Only publish to pypi if the commit has a tag. 
 
 
-
-
     - name: Publish distribution 📦 to Test PyPI
+      if: github.event_name != 'push' && startsWith(github.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@release/v1
+      needs: commit file
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
         repository_url: https://test.pypi.org/legacy/
