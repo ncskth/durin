@@ -28,7 +28,7 @@ jobs:
       run: |
         git add setup.py
         git commit -m "incremented version number"
-        git push origin master
+        git push origin main
 
     #get change the version number and commit. Dont do it if there is a tag. 
     #- name: Commit with tag
