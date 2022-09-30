@@ -26,8 +26,10 @@ jobs:
 
     - name: commit file
       run: |
+        git config --local user.email "ncsdurin@kth.se"
+        git config --local user.name "ncsdurin"
         git add setup.py
-        git commit -m "incremented version number"
+        git commit -m "incremented version number -- with love from a robot"
         git push origin main
 
     #get change the version number and commit. Dont do it if there is a tag. 
