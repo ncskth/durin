@@ -21,7 +21,7 @@ jobs:
 
     - name: execute py script # run the run.py to get the latest data
       run: |
-        python UpdateVersionNumber.py
+        python ChangeVersionNumber.py
 
 
     - name: commit file
