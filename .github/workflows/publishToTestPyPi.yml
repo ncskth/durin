@@ -26,10 +26,10 @@ jobs:
 
     - name: commit file
         needs: execute py script
-      run: |
-        git add setup.py
-        git commit -m "incremented version number"
-        git push origin master
+        run: |
+          git add setup.py
+          git commit -m "incremented version number"
+          git push origin master
 
     #get change the version number and commit. Dont do it if there is a tag. 
     #- name: Commit with tag
