@@ -33,8 +33,5 @@ def UpdateFile(newFile, version):
   return version
 
 
-
-
-
 print(UpdateFile(UpdateVersionNumber(2)[0],UpdateVersionNumber(2)[1]))
 
