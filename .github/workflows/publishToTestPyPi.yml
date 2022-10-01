@@ -28,7 +28,7 @@ jobs:
       run: |
         git config --local user.email "ncsdurin@kth.se"
         git config --local user.name "ncsdurin"
-        git add setup.py
+        git add .
         git commit -m "incremented version number -- with love from a robot"
         git push 
 
