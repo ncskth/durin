@@ -30,7 +30,9 @@ jobs:
         git config --local user.name "ncsdurin"
         git add .
         git commit -m "incremented version number -- with love from a robot"
-        git push 
+        git tag $var
+        git push
+        git push origin --tags
 
     #get change the version number and commit. Dont do it if there is a tag. 
     #- name: Commit with tag
