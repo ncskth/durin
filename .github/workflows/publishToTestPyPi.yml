@@ -21,12 +21,8 @@ jobs:
 
     - name: execute py script # run the run.py to get the latest data
       run: |
-        python ChangeVersionNumber.py
-        echo 
-        
-        
-
-
+         var = $(python ChangeVersionNumber.py)
+         echo $var
 
     - name: commit file
       run: |
