@@ -33,7 +33,7 @@ jobs:
         git config --local user.name "ncsdurin"
         git add .
         git commit -m "incremented version number -- with love from a robot"
-        git tag ${{ steps.versionNumberStuff.outputs.NEW_VERSION_NUMBER }}
+        git tag ${{ env.version }}
         git push --tags
         git push
         
