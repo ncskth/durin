@@ -27,6 +27,7 @@ jobs:
          echo $output
 
     - name: commit file
+      needs: versionNumberStuff
       run: |
         echo ${{ steps.versionNumberStuff.output.NEW_VERSION_NUMBER }}
         git config --local user.email "ncsdurin@kth.se"
