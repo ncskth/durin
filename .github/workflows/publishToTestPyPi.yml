@@ -32,9 +32,7 @@ jobs:
          echo $output
 
     - name: commit file
-      if: startsWith(github.ref, 'refs/tags') != true
-      with:
-        token: ${{ secrets.DURIN_PAT }}      
+      if: startsWith(github.ref, 'refs/tags') != true   
       run: |
         echo '${{ env.version }}'
         git config --local user.email "ncsdurin@kth.se"
