@@ -31,6 +31,7 @@ jobs:
          echo version=$output >> $GITHUB_ENV
          echo $output
 
+
     - name: commit file
       if: startsWith(github.ref, 'refs/tags') != true   
       run: |
