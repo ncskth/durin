@@ -22,9 +22,8 @@ jobs:
     - name: execute py script # run the run.py to get the latest data
       id: versionNumberStuff
       run: |
-         var=$(python ChangeVersionNumber.py)
-         echo $var
-         echo '::set-output name=NEW_VERSION_NUMBER::python ChangeVersionNumber.py'
+         output=$(python ChangeVersionNumber.py)
+         echo '::set-output name=NEW_VERSION_NUMBER::$output'
 
     - name: commit file
       run: |
