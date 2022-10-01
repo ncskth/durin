@@ -30,7 +30,7 @@ jobs:
 
     - name: commit file
       if: startsWith(github.ref, 'refs/tags') != true
-      - env:
+      env:
         token: ${{ secrets.DURIN_PAT }}      
       run: |
         echo '${{ env.version }}'
