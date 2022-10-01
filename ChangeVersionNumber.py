@@ -1,4 +1,4 @@
-import os
+import os,sys
 
 def UpdateVersionNumber(releaseSignificace):
   with open("setup.py", "r") as file:
