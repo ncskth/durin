@@ -23,7 +23,7 @@ jobs:
       id: versionNumberStuff
       run: |
          output=$(python ChangeVersionNumber.py)
-         echo 'version=$output' >> $GITHUB_ENV
+         echo version=$output >> $GITHUB_ENV
          echo $output
 
     - name: commit file
