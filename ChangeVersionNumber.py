@@ -28,6 +28,8 @@ def UpdateFile(newFile, version):
   f = open("setup.py", "w", encoding="utf-8")
   f.write(newFile)
   f.close()
+  print("hello there im a test text snippet!")
+  sys.stdout("hello there im a text text snippet using sys.stdout")
   return version
 
 
