@@ -31,13 +31,11 @@ jobs:
         git add .
         git commit -m "incremented version number -- with love from a robot"
         git tag $var
-        git push
         git push origin --tags
+        git push
+        
 
-    #get change the version number and commit. Dont do it if there is a tag. 
-    #- name: Commit with tag
-      #uses:
-      #with:
+
 
     - name: Install pypa/build
       run: python -m pip install build --user
