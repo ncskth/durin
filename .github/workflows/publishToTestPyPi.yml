@@ -14,9 +14,9 @@ jobs:
     name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@master
     - env:
       token: ${{ secrets.DURIN_PAT }}
-    - uses: actions/checkout@master
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
