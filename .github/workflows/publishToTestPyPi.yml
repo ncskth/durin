@@ -23,12 +23,12 @@ jobs:
       id: versionNumberStuff
       run: |
          output=$(python ChangeVersionNumber.py)
-         echo '::set-output name=NEW_VERSION_NUMBER::$output'
+         echo 'version=output' >> $GITHUB_ENV
          echo $output
 
     - name: commit file
       run: |
-        echo '${{ steps.versionNumberStuff.output.NEW_VERSION_NUMBER }}'
+        echo '${{ env.version }}'
         git config --local user.email "ncsdurin@kth.se"
         git config --local user.name "ncsdurin"
         git add .
