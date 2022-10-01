@@ -32,7 +32,7 @@ jobs:
         git add .
         git commit -m "incremented version number -- with love from a robot"
         git tag ${{ steps.versionNumberStuff.outputs.NEW_VERSION_NUMBER }}
-        git push origin --tags
+        git push --tags
         git push
         
 
