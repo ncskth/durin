@@ -34,5 +34,7 @@ def UpdateFile(newFile, version):
 
 
 
-#print(UpdateFile(UpdateVersionNumber(2)[0],UpdateVersionNumber(2)[1]))
+
+
+print(UpdateFile(UpdateVersionNumber(2)[0],UpdateVersionNumber(2)[1]))
 
