@@ -64,7 +64,7 @@ jobs:
     # Only publish to pypi if the commit has a tag. 
 
     - name: Publish distribution 📦 to Test PyPI
-      if: startsWith(github.ref, 'refs/tags') != true 
+      if: startsWith(github.ref, 'refs/tags') == true 
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
