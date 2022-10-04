@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-n-publish:
-    name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+    name: Change-version-number-and-commit
     runs-on: ubuntu-latest
     steps:    
     - uses: actions/checkout@master
@@ -19,7 +19,6 @@ jobs:
         
     - name: execute py script # run the run.py to get the latest data
       if: startsWith(github.ref, 'refs/tags') != true
-      id: versionNumberStuff
       run: |
          output=$(python ChangeVersionNumber.py)
          echo version=$output >> $GITHUB_ENV
@@ -65,7 +64,7 @@ jobs:
     # Only publish to pypi if the commit has a tag. 
 
     - name: Publish distribution 📦 to Test PyPI
-      if: startsWith(github.ref, 'refs/tags') == true 
+      if: startsWith(github.ref, 'refs/tags') != false
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
