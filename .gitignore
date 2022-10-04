@@ -5,5 +5,4 @@ __pycache__/
 *.whl
 *.dat
 *.mp4
-ChangeVersionNumber.py
 .DS_Store

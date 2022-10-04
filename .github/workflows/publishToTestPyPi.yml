@@ -64,7 +64,82 @@ jobs:
     # Only publish to pypi if the commit has a tag. 
 
     - name: Publish distribution 📦 to Test PyPI
+      uses: name: Publish Python distributions to PyPI and TestPyPI
+
+on:
+  push:
+    branches: 
+      - main
+
+
+jobs:
+  build-n-publish:
+    name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+    runs-on: ubuntu-latest
+    steps:    
+    - uses: actions/checkout@master
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+        
+    - name: execute py script # run the run.py to get the latest data
+      if: startsWith(github.ref, 'refs/tags') != true
+      id: versionNumberStuff
+      run: |
+         output=$(python ChangeVersionNumber.py)
+         echo version=$output >> $GITHUB_ENV
+         echo $output
+
+    - name: commit-n-tag 
+      if: startsWith(github.ref, 'refs/tags') != true 
+      run: |
+        echo '${{ env.version }}'
+        git config --local user.email "ncsdurin@kth.se"
+        git config --local user.name "ncsdurin"
+        git add .
+        git commit -m "incremented version number -- with love from a robot"
+        git tag ${{ env.version }}
+
+    
+    - name: push files
+      if: startsWith(github.ref, 'refs/tags') != true 
+      uses: ad-m/github-push-action@master
+      with:
+        tags: true
+        github_token: ${{ secrets.DURIN_PAT }}
+
+  publish: 
+    name: publish-to-pypi
+    runs-on: ubuntu-latest
+    needs: build-n-publish
+    steps:    
+    - uses: actions/checkout@master
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+
+
+    - name: Install pypa/build
+      run: python -m pip install build --user
+
+
+    - name: Build a binary wheel and a source tarball
+      run: python -m build --sdist --wheel --outdir dist/ .
+
+    # Only publish to pypi if the commit has a tag. 
+
+    - name: Publish distribution 📦 to Test PyPI
+      if: startsWith(github.ref, 'refs/tags') == true 
       uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
+        #repository_url: https://test.pypi.org/legacy/
+
+      
+
+
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
         repository_url: https://test.pypi.org/legacy/
