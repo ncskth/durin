@@ -41,8 +41,7 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         tags: true
-      env:
-        github_token: ${{ github.DURIN_PAT }}
+        github_token: ${{ secrets.DURIN_PAT }}
 
         
     - name: Install pypa/build
