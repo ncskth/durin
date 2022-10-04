@@ -25,17 +25,24 @@ jobs:
          echo version=$output >> $GITHUB_ENV
          echo $output
 
-    - name: commit file
+    - name: commit-n-tag 
       if: startsWith(github.ref, 'refs/tags') != true 
       run: |
         echo '${{ env.version }}'
         git config --local user.email "ncsdurin@kth.se"
         git config --local user.name "ncsdurin"
+        git config --global user.password ${{ secrets.DURIN_PAT }}
         git add .
         git commit -m "incremented version number -- with love from a robot"
         git tag ${{ env.version }}
-        git push --tags
-        git push
+
+    
+    - name: push files
+      if: startsWith(github.ref, 'refs/tags') != true 
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.DURIN_PAT }}
+
         
     - name: Install pypa/build
       run: python -m pip install build --user
