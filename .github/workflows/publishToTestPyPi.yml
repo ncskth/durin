@@ -31,7 +31,6 @@ jobs:
         echo '${{ env.version }}'
         git config --local user.email "ncsdurin@kth.se"
         git config --local user.name "ncsdurin"
-        git config --global user.password ${{ secrets.DURIN_PAT }}
         git add .
         git commit -m "incremented version number -- with love from a robot"
         git tag ${{ env.version }}
@@ -43,7 +42,7 @@ jobs:
       with:
         tags: true
       env:
-        github_token: ${{ secrets.DURIN_PAT }}
+        github_token: ${{ github.DURIN_PAT }}
 
         
     - name: Install pypa/build
