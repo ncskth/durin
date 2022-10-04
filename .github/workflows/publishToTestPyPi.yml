@@ -41,8 +41,9 @@ jobs:
       if: startsWith(github.ref, 'refs/tags') != true 
       uses: ad-m/github-push-action@master
       with:
+        tags: true
+      env:
         github_token: ${{ secrets.DURIN_PAT }}
-        tags: true 
 
         
     - name: Install pypa/build
