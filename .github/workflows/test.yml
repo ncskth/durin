@@ -1,8 +1,6 @@
-name: TestScript
-
+name: Test
 on:
   push:
-
 jobs:
   name: lol
   runs-on: ubuntu-latest
