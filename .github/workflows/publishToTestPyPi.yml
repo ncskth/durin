@@ -1,9 +1,6 @@
 name: Publish Python distributions to PyPI and TestPyPI
-
 on:
   push:
-
-
 
 jobs:
   build-n-publish:
@@ -11,8 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:    
     - uses: actions/checkout@master
-      with: 
-        fetch-depth: 2
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
