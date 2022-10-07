@@ -15,14 +15,14 @@ jobs:
         python-version: "3.10"
         
     - name: execute py script # run the run.py to get the latest data
-      if: startsWith(github.ref, 'refs/tags') != true
+      if: startsWith(github.ref, 'v') != true
       run: |
          output=$(python ChangeVersionNumber.py)
          echo version=$output >> $GITHUB_ENV
          echo $output
 
     - name: commit-n-tag 
-      if: startsWith(github.ref, 'refs/tags/v') != true 
+      if: startsWith(github.ref, 'v') != true 
       run: |
         echo '${{ github.ref }}'
         echo '${{ env.version }}'
@@ -34,7 +34,7 @@ jobs:
 
     
     - name: push files
-      if: startsWith(github.ref, 'refs/tags/v') != true 
+      if: startsWith(github.ref, 'v') != true 
       uses: ad-m/github-push-action@master
       with:
         tags: true
@@ -64,7 +64,7 @@ jobs:
     # Only publish to pypi if the commit has a tag. 
 
     - name: Publish distribution 📦 to Test PyPI
-      if: startsWith(github.ref, 'refs/tags')
+      if: startsWith(github.ref, 'v')
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
