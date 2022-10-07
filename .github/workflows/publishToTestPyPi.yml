@@ -24,6 +24,7 @@ jobs:
     - name: commit-n-tag 
       if: startsWith(github.ref, 'refs/tags/v') != true 
       run: |
+        echo '$github.ref'
         echo '${{ env.version }}'
         git config --local user.email "ncsdurin@kth.se"
         git config --local user.name "ncsdurin"
