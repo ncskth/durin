@@ -25,7 +25,6 @@ jobs:
       if: startsWith(github.ref, 'v') != true 
       run: |
         echo '${{ github.ref }}'
-        echo '${{ env.version }}'
         git config --local user.email "ncsdurin@kth.se"
         git config --local user.name "ncsdurin"
         git add .
