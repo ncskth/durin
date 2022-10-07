@@ -2,6 +2,8 @@ from multiprocessing import Process
 import multiprocessing
 from time import sleep
 from durin.controller import server
+from durin.io import network
+from durin.io.command import StreamOn
 
 
 class MockStreamer(server.Streamer):
@@ -27,8 +29,8 @@ def start_server(port: int):
 def test_handshake():
     serv, proc, q = start_server(3000)
     sleep(0.2)
-    b = client.DVSClient("localhost", 3000)
-    b.start_stream("0.0.0.0", 3001)
+    b = network.TCPLink("localhost", 3002)
+    b.send(StreamOn("0.0.0.0", 3001, 1), 10)
     sleep(0.2)
     assert q.get() == "0.0.0.0:3001"
 

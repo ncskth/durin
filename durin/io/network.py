@@ -3,9 +3,9 @@ import logging
 from queue import Empty, Full
 import socket
 import multiprocessing
-from typing import ByteString, Optional, Tuple
+from typing import ByteString, Optional
 from durin import io
-
+from durin.actuator import StreamOn
 from durin.io.runnable import RunnableConsumer, RunnableProducer
 
 
@@ -26,14 +26,17 @@ def get_ip(ip):
 class TCPProducer(RunnableProducer):
     def produce(self, sock):
         try:
-            return sock.recv(512)
+            header = sock.recv(3)
+            size = int.from_bytes(header[1:], 'little')
+            return sock.recv(size)
         except BlockingIOError:
             return None
 
 
 class TCPConsumer(RunnableConsumer):
     def consume(self, event, sock):
-        sock.send(event)
+        bs = b"\n" + len(event).to_bytes(2, "little") + event
+        sock.send(bs)
 
 
 class TCPLink:
@@ -96,10 +99,10 @@ class UDPLink(RunnableProducer):
     """
 
     def __init__(
-        self, host: str, ip: str, package_size: int = 512, buffer_size: int = 100
+        self, host: str, ip: str, packet_size: int = 512, buffer_size: int = 100
     ):
         self.buffer_size = buffer_size
-        self.package_size = package_size
+        self.packet_size = packet_size
         context = multiprocessing.get_context("spawn")
         self.buffer = context.Queue(self.buffer_size)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -113,9 +116,9 @@ class UDPLink(RunnableProducer):
 
     def produce(self, sock):
         try:
-            buffer, _ = sock.recvfrom(self.package_size)
-            sensor_id, reply = io.decode(buffer)
-            return (sensor_id, reply)
+            buffer = sock.recv(self.packet_size)
+            size = int.from_bytes(buffer[1:3], "little")
+            return io.decode(buffer[3 : 3 + size])
         except BlockingIOError:
             return None
 
@@ -126,38 +129,40 @@ class UDPLink(RunnableProducer):
         logging.debug(f"UDP communication stopped")
 
 
-class DVSClient:
-    def __init__(self, host: str, port: int) -> None:
-        self.sock = None
-        self.address = (host, port)
+# class DVSClient(TCPLink):
+#     def __init__(self, host: str, port: int) -> None:
+#         self.sock = None
+#         self.address = (host, port)
 
-    def _init_connection(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect(self.address)
-        self.sock.setblocking(0)
-        logging.debug(f"UDP DVS communication sending to {self.address}")
+#     def _init_connection(self):
+#         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#         self.sock.connect(self.address)
+#         self.sock.setblocking(0)
+#         logging.debug(f"UDP DVS communication sending to {self.address}")
 
-    def _send_message(self, message: bytes):
-        try:
-            self.sock.send(message)
-        except (BrokenPipeError, AttributeError) as e:
-            try:
-                self._init_connection()
-            except ConnectionRefusedError as e:
-                raise ConnectionRefusedError(
-                    f"Could not connect to DVS controller at {self.address}"
-                )
-            self._send_message(message)
+#     def _send_message(self, message: bytes):
+#         try:
+#             self.sock.send(message)
+#         except (BrokenPipeError, AttributeError) as e:
+#             try:
+#                 self._init_connection()
+#             except ConnectionRefusedError as e:
+#                 raise ConnectionRefusedError(
+#                     f"Could not connect to DVS controller at {self.address}"
+#                 )
+#             self._send_message(message)
 
-    def start_stream(self, host: str, port: int):
-        data = bytearray([0] * 7)
-        data[0] = 0x0
-        data[1:5] = int(ipaddress.ip_address(host)).to_bytes(4, "little")
-        data[5:7] = port.to_bytes(2, "little")
-        self._send_message(data)
+#     def start_stream(self, host: str, port: int):
+#         # cmd = StreamOn(host, port, 1)
+#         # self._send_message(cmd.encode())
+#         data = bytearray([0] * 7)
+#         data[0] = 0x0
+#         data[1:5] = int(ipaddress.ip_address(host)).to_bytes(4, "little")
+#         data[5:7] = port.to_bytes(2, "little")
+#         self._send_message(data)
 
-    def stop_stream(self):
-        if self.sock is not None:
-            self._send_message(bytes([1]))
-            self.sock.close()
-            self.sock = None
+#     def stop_stream(self):
+#         if self.sock is not None:
+#             self._send_message(bytes([1]))
+#             self.sock.close()
+#             self.sock = None

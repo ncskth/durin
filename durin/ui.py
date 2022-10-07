@@ -1,3 +1,4 @@
+import math
 import sdl2.ext
 
 import numpy as np
@@ -25,6 +26,8 @@ SENSOR_PLACEMENTS = [
     (0.02, 0.5),
 ]
 
+MAX_WHEEL = 600
+
 
 def to_rgba(value):
     alpha = 255
@@ -34,7 +37,7 @@ def to_rgba(value):
 
 def tof_sensor_to_pixels(matrix, size: int = 128):
     pixels = np.empty((size, size))
-    width = size // len(matrix)
+    width = math.ceil(size / len(matrix))
     for idr, row in enumerate(matrix):
         for idx, element in enumerate(row):
             pixels[
@@ -99,9 +102,6 @@ class DurinUI(Durin):
 
     def read_user_input(self, allow_movement: bool = True):
         events = sdl2.ext.get_events()
-        # self.horizontal = int(self.horizontal * self.tau)
-        # self.vertical = int(self.vertical * self.tau)
-        self.rot = self.rot * self.tau
 
         # Gamepad
         if not self.gamepad.queue.empty():
