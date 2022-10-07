@@ -3,9 +3,9 @@ import logging
 from queue import Empty, Full
 import socket
 import multiprocessing
-from typing import ByteString, Optional, Tuple
+from typing import ByteString, Optional
 from durin import io
-
+from durin.actuator import StreamOn
 from durin.io.runnable import RunnableConsumer, RunnableProducer
 
 
@@ -129,38 +129,40 @@ class UDPLink(RunnableProducer):
         logging.debug(f"UDP communication stopped")
 
 
-class DVSClient:
-    def __init__(self, host: str, port: int) -> None:
-        self.sock = None
-        self.address = (host, port)
+# class DVSClient(TCPLink):
+#     def __init__(self, host: str, port: int) -> None:
+#         self.sock = None
+#         self.address = (host, port)
 
-    def _init_connection(self):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect(self.address)
-        self.sock.setblocking(0)
-        logging.debug(f"UDP DVS communication sending to {self.address}")
+#     def _init_connection(self):
+#         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#         self.sock.connect(self.address)
+#         self.sock.setblocking(0)
+#         logging.debug(f"UDP DVS communication sending to {self.address}")
 
-    def _send_message(self, message: bytes):
-        try:
-            self.sock.send(message)
-        except (BrokenPipeError, AttributeError) as e:
-            try:
-                self._init_connection()
-            except ConnectionRefusedError as e:
-                raise ConnectionRefusedError(
-                    f"Could not connect to DVS controller at {self.address}"
-                )
-            self._send_message(message)
+#     def _send_message(self, message: bytes):
+#         try:
+#             self.sock.send(message)
+#         except (BrokenPipeError, AttributeError) as e:
+#             try:
+#                 self._init_connection()
+#             except ConnectionRefusedError as e:
+#                 raise ConnectionRefusedError(
+#                     f"Could not connect to DVS controller at {self.address}"
+#                 )
+#             self._send_message(message)
 
-    def start_stream(self, host: str, port: int):
-        data = bytearray([0] * 7)
-        data[0] = 0x0
-        data[1:5] = int(ipaddress.ip_address(host)).to_bytes(4, "little")
-        data[5:7] = port.to_bytes(2, "little")
-        self._send_message(data)
+#     def start_stream(self, host: str, port: int):
+#         # cmd = StreamOn(host, port, 1)
+#         # self._send_message(cmd.encode())
+#         data = bytearray([0] * 7)
+#         data[0] = 0x0
+#         data[1:5] = int(ipaddress.ip_address(host)).to_bytes(4, "little")
+#         data[5:7] = port.to_bytes(2, "little")
+#         self._send_message(data)
 
-    def stop_stream(self):
-        if self.sock is not None:
-            self._send_message(bytes([1]))
-            self.sock.close()
-            self.sock = None
+#     def stop_stream(self):
+#         if self.sock is not None:
+#             self._send_message(bytes([1]))
+#             self.sock.close()
+#             self.sock = None

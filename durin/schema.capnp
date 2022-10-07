@@ -1,1 +1,0 @@
-../durin-firmware/schema.capnp

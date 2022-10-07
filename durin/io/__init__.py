@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import List
 
 import capnp
-import numpy as np
 
 PORT_TCP = 1337
 PORT_UDP = 2300
@@ -17,7 +16,7 @@ SENSORS = {
     "uwb": 133,
 }
 
-schema = capnp.load(str((Path(__file__).parent.parent / "schema.capnp").absolute()))
+schema = capnp.load(str((Path(__file__).parent / "schema.capnp").absolute()))
 
 def decode(buffer) -> List[schema.DurinBase]:
     # TODO: Use packed version later
