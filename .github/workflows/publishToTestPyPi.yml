@@ -17,7 +17,7 @@ jobs:
 
     - name: Dump GitHub context
       id: github_context_step
-      run: echo '${{ toJSON(github) }}'
+      run: echo '${{ toJSON(github.ref) }}'
 
         
     - name: execute py script # run the run.py to get the latest data
