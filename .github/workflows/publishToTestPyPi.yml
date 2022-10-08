@@ -15,8 +15,6 @@ jobs:
         python-version: "3.10"
 
 
-
-
     - name: Dump GitHub context
       id: github_context_step
       run: echo '${{ toJSON(github.ref) }}'
