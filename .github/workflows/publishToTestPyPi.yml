@@ -1,6 +1,7 @@
 name: Publish Python distributions to PyPI and TestPyPI
 on:
   push:
+    branches: [ main ]
 
 
 jobs:
@@ -26,19 +27,19 @@ jobs:
          echo $output
 
     - name: commit-n-tag 
-      if: startsWith(github.ref, 'refs/tags') != true 
+      if: startsWith(github.ref, 'refs/tags') == false
       run: |
         echo '${{ github.ref }}'
         echo '${{ env.version }}'
         git config --local user.email "ncsdurin@kth.se"
         git config --local user.name "ncsdurin"
-        git add .
+        git add setup.py
         git commit -m "incremented version number -- with love from a robot"
         git tag ${{ env.version }}
 
     
     - name: push files
-      if: startsWith(github.ref, 'refs/tags') != true 
+      if: startsWith(github.ref, 'refs/tags') == false
       uses: ad-m/github-push-action@master
       with:
         tags: true
@@ -46,10 +47,12 @@ jobs:
 
 
     - name: Install pypa/build
+      if: startsWith(github.ref, 'refs/tags')
       run: python -m pip install build --user
 
 
     - name: Build a binary wheel and a source tarball
+      if: startsWith(github.ref, 'refs/tags')
       run: python -m build --sdist --wheel --outdir dist/ .
 
     # Only publish to pypi if the commit has a tag. 
