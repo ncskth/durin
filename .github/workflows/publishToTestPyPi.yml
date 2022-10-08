@@ -22,7 +22,7 @@ jobs:
          echo $output
 
     - name: commit-n-tag 
-      if: startsWith(github.ref, 'refs/tags/v') != true 
+      if: startsWith(github.ref, 'refs/tags') != true 
       run: |
         echo '${{ github.ref }}'
         echo '${{ env.version }}'
@@ -34,7 +34,7 @@ jobs:
 
     
     - name: push files
-      if: startsWith(github.ref, 'refs/tags/v') != true 
+      if: startsWith(github.ref, 'refs/tags') != true 
       uses: ad-m/github-push-action@master
       with:
         tags: true
