@@ -46,9 +46,9 @@ jobs:
 
     - name: push files
       if: startsWith(github.ref, 'refs/tags') == false
-      uses: ad-m/github-push-action@master
+      uses: ad-m/github-push-action@masterh
       with:
-        tags: true
+        tags: false
         github_token: ${{ secrets.DURIN_PAT }}
 
 
