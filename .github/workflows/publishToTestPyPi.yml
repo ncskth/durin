@@ -3,7 +3,6 @@ on:
   push:
 
 
-
 jobs:
   build-n-publish:
     name: Change-version-number-and-commit
