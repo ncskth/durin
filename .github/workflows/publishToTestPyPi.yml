@@ -47,11 +47,8 @@ jobs:
     - name: push files
       if: startsWith(github.ref, 'refs/tags') == false
       uses: ad-m/github-push-action@master
-      with:
-        tags: false
-        github_token: ${{ secrets.DURIN_PAT }}
 
-
+      
     - name: Install pypa/build
       if: startsWith(github.ref, 'refs/tags')
       run: python -m pip install build --user
