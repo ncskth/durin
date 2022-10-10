@@ -28,6 +28,7 @@ class TCPProducer(RunnableProducer):
         try:
             header = sock.recv(3)
             size = int.from_bytes(header[1:], 'little')
+            size = size & (0b0000111111111111) # Zero out meta-bits
             return sock.recv(size)
         except BlockingIOError:
             return None
