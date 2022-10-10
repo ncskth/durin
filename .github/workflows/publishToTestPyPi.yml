@@ -28,16 +28,14 @@ jobs:
 
     - name: commit-n-tag 
       if: startsWith(github.ref, 'refs/tags') == false
-      run: |
-        echo '${{ github.ref }}'
-        echo '${{ env.version }}'
-        git config --local user.email "ncsdurin@kth.se"
-        git config --local user.name "ncsdurin"
-        git add setup.py
-        git commit -m "incremented version number -- with love from a robot"
-        git tag ${{ env.version }}
+      uses: mathieudutour/github-tag-action@v6.0
+        with:
+          github_token: ${{ secrets.DURIN_PAT }} 
+          custom_tag:  ${{ env.version }}
 
     
+
+
     - name: push files
       if: startsWith(github.ref, 'refs/tags') == false
       uses: ad-m/github-push-action@master
