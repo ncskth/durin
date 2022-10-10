@@ -24,8 +24,14 @@ jobs:
          output=$(python ChangeVersionNumber.py)
          echo version=$output >> $GITHUB_ENV
          echo $output
+    
+    - name: commit
+      if: startsWith(github.ref, 'refs/tags') == false
+      run: |
+        git add .
+        git commit -m "This is the action of github actions"
 
-    - name: commit-n-tag 
+    - name: tag 
       if: startsWith(github.ref, 'refs/tags') == false
       uses: mathieudutour/github-tag-action@v6.0
       with:
