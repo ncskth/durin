@@ -3,7 +3,7 @@ import multiprocessing
 from time import sleep
 from durin.controller import server
 from durin.io import network
-from durin.io.command import StreamOn
+from durin.io.command import StreamOff, StreamOn
 
 
 class MockStreamer(server.Streamer):
@@ -17,27 +17,20 @@ class MockStreamer(server.Streamer):
         self.queue.put("stop")
 
 
-def start_server(port: int):
-    q = multiprocessing.Queue(10)
-    a = server.DVSServer(port, streamer=MockStreamer(q))
-    p = Process(target=a.listen, )
-    p.daemon = True
-    p.start()
-    return a, p, q
-
-
 def test_handshake():
-    serv, proc, q = start_server(3000)
+    q = multiprocessing.get_context("spawn").Queue(10)
+    serv = server.DVSServer(3000, streamer=MockStreamer(q))
+    serv.start()
     sleep(0.2)
-    b = network.TCPLink("localhost", 3002)
-    b.send(StreamOn("0.0.0.0", 3001, 1), 10)
+    b = network.TCPLink("0.0.0.0", 3000)
+    b.start()
     sleep(0.2)
-    assert q.get() == "0.0.0.0:3001"
+    b.send(StreamOn("0.0.0.0", 3001, 1).encode(), 10)
+    sleep(0.2)
+    assert q.get(timeout=1) == "[0, 0, 0, 0]:3001"
 
-    b.stop_stream()
+    b.send(StreamOff().encode(), 10)
     sleep(0.2)
     assert q.get() == "stop"
-    
-    serv.close()
-    proc.terminate()
-    proc.join()
+    serv.stop()
+    b.stop()

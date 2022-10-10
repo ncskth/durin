@@ -135,4 +135,4 @@ class StreamOff(Command):
         self.cmd_id = 19
 
     def encode(self):
-        return _wrap_base(schema.DisableStreaming.new_message())
+        return _wrap_base(schema.DisableStreaming.new_message(), "disableStreaming")

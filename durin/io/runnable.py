@@ -7,10 +7,10 @@ from typing import Any
 
 
 class Runnable:
-    def __init__(self, *args):
-        context = multiprocessing.get_context("spawn")
+    def __init__(self, *args, context: str = "spawn", **kwargs):
+        context = multiprocessing.get_context(context)
         self.event = context.Event()
-        self.thread = context.Process(target=self._run_thread, args=(self.event, *args))
+        self.thread = context.Process(target=self._run_thread, args=(self.event, *args, *kwargs.values()))
 
     @abstractmethod
     def run(self, *args):
@@ -36,25 +36,26 @@ class Runnable:
 
 
 class RunnableConsumer(Runnable):
-    def __init__(self, queue, *args):
-        super().__init__(*args)
+    def __init__(self, queue, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.queue = queue
 
     @abstractmethod
-    def consume(self, event, *args):
+    def consume(self, item, *args):
         pass
 
     def run(self, *args):
         try:
             item = self.queue.get(block=False)
-            self.consume(item, *args)
+            if item is not None:
+                self.consume(item, *args)
         except queue.Empty:
             pass
 
 
 class RunnableProducer(Runnable):
-    def __init__(self, queue, args, blocking: bool = False):
-        super().__init__(args)
+    def __init__(self, queue, args, blocking: bool = False, **kwargs):
+        super().__init__(args, **kwargs)
         self.queue = queue
         self.blocking = blocking
 

@@ -24,6 +24,7 @@ def get_ip(ip):
 
 
 class TCPProducer(RunnableProducer):
+
     def produce(self, sock):
         try:
             header = sock.recv(3)
@@ -35,6 +36,7 @@ class TCPProducer(RunnableProducer):
 
 
 class TCPConsumer(RunnableConsumer):
+
     def consume(self, event, sock):
         bs = b"\n" + len(event).to_bytes(2, "little") + event
         sock.send(bs)
@@ -50,7 +52,7 @@ class TCPLink:
         buffer_size_send: int = 2,
         buffer_size_receive: int = 100,
     ):
-        self.address = (host, int(port))
+        address = (host, int(port))
         context = multiprocessing.get_context("spawn")
         # Buffer towards Durin
         self.buffer_send = context.Queue(buffer_size_send)
@@ -60,10 +62,10 @@ class TCPLink:
         # Create socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.sock.connect(self.address)
+            self.sock.connect(address)
             self.sock.setblocking(False)
         except (ConnectionRefusedError, OSError) as e:
-            raise ConnectionRefusedError(f"Cannot reach Durin at {self.address}")
+            raise ConnectionRefusedError(f"Cannot reach Durin at {address}")
 
         # Create producer/consumer
         self.sender = TCPConsumer(self.buffer_send, self.sock)

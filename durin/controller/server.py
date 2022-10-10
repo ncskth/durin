@@ -1,6 +1,7 @@
 from abc import abstractmethod
 import ipaddress
 import logging
+import multiprocessing
 import subprocess
 import socket
 from multiprocessing import Process
@@ -8,6 +9,9 @@ import time
 from typing import Optional
 
 from durin.controller import dvs
+from durin.io import decode
+from durin.io.network import TCPProducer
+from durin.io.runnable import Runnable, RunnableConsumer
 
 
 class Streamer:
@@ -28,7 +32,7 @@ def _log_thread(pipe):
 
 
 class AEStreamer(Streamer):
-    def __init__(self) -> None:
+    def __init__(self, buffer) -> None:
         self.aestream = None
         self.aestream_log = None
         # Test that aestream exists
@@ -39,6 +43,8 @@ class AEStreamer(Streamer):
             self.camera_string = dvs.identify_inivation_camera()
         except RuntimeError as e:
             logging.warning("No DVX camera found on startup", e)
+
+        super().__init__(buffer)
 
     def start_stream(self, host: str, port: int):
         if self.aestream is not None:
@@ -78,64 +84,62 @@ class AEStreamer(Streamer):
             logging.warning("Error when closing aestream", e)
 
 
-class DVSServer:
+class DVSServer(Runnable):
     def __init__(self, port: int, streamer: Optional[Streamer] = None) -> None:
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        logging.debug(f"Listening to 0.0.0.0 {port}")
-        self.sock.bind(("0.0.0.0", port))
-        self.sock.listen(1)
+        super().__init__(port)
+        context = multiprocessing.get_context("spawn")
+        self.buffer = context.Queue(10)
         self.streamer = streamer if streamer is not None else AEStreamer()
+        self.consumer = DVSCommandConsumer(self.buffer, self.streamer)
         self.clients = []
-        self.is_streaming = False
-
-    def listen(self):
         self.is_streaming = True
-        while self.is_streaming:
-            connection, address = self.sock.accept()
-            logging.debug("New client connection established")
-            self.streamer.stop_stream()
-            self.close_clients()
-            thread = Process(target=self.client_loop, args=(connection, self.streamer))
-            thread.start()
-            self.clients.append(thread)
 
-    def close(self):
-        self.is_streaming = False
+    def run(self, port):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind(("0.0.0.0", port))
+            sock.listen(1)
+            connection, _ = sock.accept()
+            self.close_clients()
+
+            producer = TCPProducer(self.buffer, connection)
+            producer.start()
+            producer.thread.join()
+        except TimeoutError:
+            pass
+        finally:
+            sock.close()
+
+    def start(self):
+        super().start()
+        self.consumer.start()
+
+    def stop(self):
+        super().stop()
         self.close_clients()
-        self.sock.close()
+        self.consumer.stop()
 
     def close_clients(self):
         logging.debug(f"Closing {len(self.clients)} old clients")
         for thread in self.clients:
-            try:
-                thread.terminate()
-                thread.join()
-            except:
-                pass
+            thread.close()
+        self.clients = []
 
-    @staticmethod
-    def client_loop(connection, streamer):
-        try:
-            while True:
-                msg = connection.recv(512)
-                DVSServer._parse_command(msg, streamer)
-        except Exception as e:
-            streamer.stop_stream()
-            logging.warning("Error when receiving data", e)
 
-    @staticmethod
-    def _parse_command(data, streamer):
-        if len(data) == 0:
-            return
-        logging.debug(f"Received command: {len(data)} bytes of type {data[0]}")
-        if data[0] == 0:  # Start streaming
-            host_ip = ipaddress.ip_address(int.from_bytes(data[1:5], "little"))
-            port = int.from_bytes(data[5:7], "little")
-            logging.debug(f"Streaming to {host_ip}:{port}")
-            streamer.start_stream(str(host_ip), port)
-        else:  # Stop streaming
-            logging.debug(f"Terminating streaming")
+class DVSCommandConsumer(RunnableConsumer):
+    def consume(self, bs, streamer: AEStreamer):
+        d = decode(bs)
+        if d.which == "enableStreaming":
+            destination = d.enableStreaming.destination.udpOnly
+            ip = destination.ip
+            port = destination.port
+            streamer.start_stream(ip, port)
+        elif d.which == "disableStreaming":
             streamer.stop_stream()
+        else:
+            logging.warn("Unknown command received", d.which)
 
 
 if __name__ == "__main__":
@@ -144,4 +148,4 @@ if __name__ == "__main__":
     try:
         server.listen()
     finally:
-        server.close()
+        server.stop()
