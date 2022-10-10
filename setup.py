@@ -5,12 +5,13 @@ with open("requirements.txt", "r") as fp:
 
 setup(
     name="durin",
-    version="0.0.1",
+    version="0.0.55",
     install_requires=requirements,
     packages=["durin"],
     license="LGPLv3",
     maintainer="Jens E. Pedersen",
     maintainer_email="jeped@kth.se",
     extras_require={"aestream": ["aestream"]},
-    scripts=["bin/durin"]
+    scripts=["bin/durin"],
+    long_description_content_type="text/markdown"
 )

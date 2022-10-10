@@ -5,3 +5,4 @@ __pycache__/
 *.whl
 *.dat
 *.mp4
+.DS_Store
