@@ -5,7 +5,7 @@ with open("requirements.txt", "r") as fp:
 
 setup(
     name="durin",
-    version="0.0.52",
+    version="0.0.53",
     install_requires=requirements,
     packages=["durin"],
     license="LGPLv3",
