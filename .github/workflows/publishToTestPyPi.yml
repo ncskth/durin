@@ -29,9 +29,9 @@ jobs:
     - name: commit-n-tag 
       if: startsWith(github.ref, 'refs/tags') == false
       uses: mathieudutour/github-tag-action@v6.0
-        with:
-          github_token: ${{ secrets.DURIN_PAT }} 
-          custom_tag:  ${{ env.version }}
+      with:
+        github_token: ${{ secrets.DURIN_PAT }} 
+        custom_tag:  ${{ env.version }}
 
     
 
