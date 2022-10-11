@@ -146,6 +146,7 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
     server = DVSServer(2301)
     try:
-        server.listen()
+        server.start()
+        server.thread.join()
     finally:
         server.stop()
