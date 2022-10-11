@@ -8,7 +8,7 @@ with open("README.md", "r") as fp:
 
 setup(
     name="durin",
-    version="0.0.58",
+    version="0.0.59",
     install_requires=requirements,
     packages=["durin"],
     license="LGPLv3",
