@@ -1,11 +1,9 @@
 from abc import abstractmethod
-import ipaddress
 import logging
 import multiprocessing
 import subprocess
 import socket
 from multiprocessing import Process
-import time
 from typing import Optional
 
 from durin.controller import dvs
@@ -32,7 +30,7 @@ def _log_thread(pipe):
 
 
 class AEStreamer(Streamer):
-    def __init__(self, buffer) -> None:
+    def __init__(self) -> None:
         self.aestream = None
         self.aestream_log = None
         # Test that aestream exists
@@ -43,8 +41,6 @@ class AEStreamer(Streamer):
             self.camera_string = dvs.identify_inivation_camera()
         except RuntimeError as e:
             logging.warning("No DVX camera found on startup", e)
-
-        super().__init__(buffer)
 
     def start_stream(self, host: str, port: int):
         if self.aestream is not None:

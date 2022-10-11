@@ -1,9 +1,5 @@
 import logging
-import multiprocessing
-import sys
-from typing import Optional, Tuple
-from durin.actuator import SetLed, StreamOn
-
+from durin.actuator import StreamOn
 
 from durin.actuator import DurinActuator
 from durin.io.network import TCPLink, UDPLink
