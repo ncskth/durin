@@ -16,6 +16,7 @@ setup(
     maintainer_email="jeped@kth.se",
     extras_require={"aestream": ["aestream"]},
     scripts=["bin/durin"],
+    description="Python control interface for the Durin robot",
     long_description=long_description,
     long_description_content_type="text/markdown",
 )

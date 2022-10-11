@@ -1,6 +1,6 @@
 # Durin control system
 
-This repository contains Python code that interfaces with the robot Durin.
+This repository contains Python code that interfaces with the robot Durin, built by the [Neurocomputing Systems group](https://neurocomputing.systems) at the [KTH Royal Instititute of Technology](https://kth.se).
 Please note that this is only the reference implementation for our interface. See below.
 
 ## Installation
