@@ -12,6 +12,7 @@ from durin.io.runnable import Runnable, RunnableConsumer
 
 logging.getLogger().setLevel(logging.DEBUG)
 
+
 class Streamer:
     @abstractmethod
     def start_stream(self, host: str, port: int):
@@ -20,6 +21,7 @@ class Streamer:
     @abstractmethod
     def stop_stream(self):
         pass
+
 
 class AEStreamer(Streamer):
     def __init__(self) -> None:
@@ -45,9 +47,11 @@ class AEStreamer(Streamer):
             logging.warning("No camera found", e)
             return
 
-        command = f"aestream input {self.camera_string} output udp {host} {port}"
+        host_ip = ".".join([str(i) for i in host])
+        command = f"aestream input {self.camera_string} output udp {host_ip} {port}"
         self.aestream = subprocess.run(
-            command.split(" "), capture_output=True, #stderr=subprocess.STDOUT, stdout=subprocess.PIPE
+            command.split(" "),
+            capture_output=True,  # stderr=subprocess.STDOUT, stdout=subprocess.PIPE
         )
 
         logging.debug(f"Sending DVS to {host}:{port} with command\n\t{command}")
