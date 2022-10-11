@@ -19,5 +19,5 @@ setup(
     description="Python control interface for the Durin robot",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    package_data={"durin.io": ["durin/io/schema.capnp"]}
+    package_data={"": ["durin/io/schema.capnp"]}
 )
