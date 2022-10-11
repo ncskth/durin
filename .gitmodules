@@ -1,3 +1,3 @@
 [submodule "durin-firmware"]
 	path = durin-firmware
-	url = https://github.com/ncskth/durin-firmware
+	url = https://github.com/ncskth/durin-firmware.git
