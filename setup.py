@@ -10,7 +10,7 @@ setup(
     name="durin",
     version="0.0.61",
     install_requires=requirements,
-    packages=["durin"],
+    # packages=["durin"],
     license="LGPLv3",
     maintainer="Jens E. Pedersen",
     maintainer_email="jeped@kth.se",

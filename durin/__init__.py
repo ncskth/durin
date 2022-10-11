@@ -1,6 +1,7 @@
-from durin.actuator import *
+from .actuator import *
+from . import examples
 
 try:
-    from durin.ui import Durin, DurinUI
+    from .ui import Durin, DurinUI
 except ModuleNotFoundError:
     pass

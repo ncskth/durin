@@ -9,12 +9,12 @@ We require a working Python installation with access to [pip](https://pypi.org/p
 After that, installation is straight-forward:
 
 ```bash
-pip install git+https://github.com/ncskth/durin
+pip install durin
 ```
 
 ## Usage
 
-The interface is meant to be used via Python. More examples can be found in the `durin/examples` folder.
+The interface is meant to be used via Python. More examples can be found in the [`durin/examples`](https://github.com/ncskth/durin/tree/main/durin/examples) folder.
 
 
 ```python
