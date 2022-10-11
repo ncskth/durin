@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 with open("requirements.txt", "r") as fp:
     requirements = fp.read().split("\n")
@@ -10,7 +10,7 @@ setup(
     name="durin",
     version="0.0.63",
     install_requires=requirements,
-    # packages=["durin"],
+    packages=find_packages(),
     license="LGPLv3",
     maintainer="Jens E. Pedersen",
     maintainer_email="jeped@kth.se",
