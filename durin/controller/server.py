@@ -3,7 +3,6 @@ import logging
 import multiprocessing
 import subprocess
 import socket
-from multiprocessing import Process
 from typing import Optional
 
 from durin.controller import dvs

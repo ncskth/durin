@@ -6,7 +6,8 @@ if __name__ == "__main__":
 
     # We start a connection to the robot
     # and can now read from and write to the robot via the variable "durin"
-    with Durin("durin5.local") as durin:
+    #with Durin("durin5.local", enable_dvs=True) as durin:
+    with Durin("172.16.222.200", enable_control=False, enable_dvs=True) as durin:
 
         # Loop forever
         while True:
@@ -16,6 +17,8 @@ if __name__ == "__main__":
             # - dvs = Robot DVS data (if any)
             # - cmd = Robot responses to commands
             (obs, dvs, cmd) = durin.read()
+            if dvs is not None:
+                print(dvs.sum())
 
             # Move following a square-shaped trajectory
             durin(Move(100, 0, 0))

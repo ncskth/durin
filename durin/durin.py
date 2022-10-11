@@ -8,9 +8,9 @@ from durin.sensor import DurinSensor
 import durin.io
 
 DURIN_CONTROLLER_PORT_TCP = 1337
-DURIN_CONTROLLER_PORT_UDP = 4305
+DURIN_CONTROLLER_PORT_UDP = 1338
 
-DURIN_DVS_PORT_TCP = 2301
+DURIN_DVS_PORT_TCP = 2300
 
 
 class Durin:
@@ -35,7 +35,8 @@ class Durin:
         device (str): The PyTorch device to use for storing tensors. Defaults to cpu
         stream_command (Optional[StreamOn]): The command sent to the Durin microcontroller upon start. Can be customized, but uses sensible values by default.
         sensor_frequency (int): The update frequency of the sensor information in ms. Defaults to 15ms.
-        disable_dvs (bool): Disables connection to DVS. Useful if necessary libraries are not installed. Defaults to False.
+        enable_control (bool): Enables Durin sensors and control. Useful for testing without sending commands. Defaults to True.
+        enable_dvs (bool): Enables Durin DVS data. Requires the aestream dependency AND a mounted DVS camera on Durin. Defaults to False.
     """
 
     def __init__(
@@ -44,67 +45,73 @@ class Durin:
         device: str = "cpu",
         stream_command: Optional[StreamOn] = None,
         sensor_frequency: int = 15,
-        disable_dvs: bool = True,
+        enable_control: bool = True,
+        enable_dvs: bool = False,
     ):
         if stream_command is not None:
-            self.stream_command = stream_command
+            self.stream_command_control = stream_command
+            self.stream_command_dvs = StreamOn(stream_command.host, DURIN_DVS_PORT_TCP + 1, 1)
         else:
             response_ip = durin.io.network.get_ip(durin_ip)
-            self.stream_command = StreamOn(
+            self.stream_command_control = StreamOn(
                 response_ip, DURIN_CONTROLLER_PORT_UDP, sensor_frequency
             )
+            self.stream_command_dvs = StreamOn(response_ip, DURIN_DVS_PORT_TCP + 1, 1)
 
         # Controller
-        tcp_link = TCPLink(durin_ip, DURIN_CONTROLLER_PORT_TCP)
-        udp_link = UDPLink(self.stream_command.host, self.stream_command.port)
-        self.sensor = DurinSensor(udp_link)
-        self.actuator = DurinActuator(tcp_link)
+        self.enable_control = enable_control
+        if self.enable_control:
+            tcp_link = TCPLink(durin_ip, DURIN_CONTROLLER_PORT_TCP)
+            udp_link = UDPLink(self.stream_command_control.host, self.stream_command_control.port)
+            self.sensor = DurinSensor(udp_link)
+            self.actuator = DurinActuator(tcp_link)
 
         # DVS
-        self.disable_dvs = disable_dvs
-        if not disable_dvs:
-            import dvs
+        self.enable_dvs = enable_dvs
+        if self.enable_dvs:
+            import durin.dvs as dvs
 
-            ip_list = durin_ip.split(".")
-            dvs_ip = ".".join(ip_list[:-1]) + f".{int(ip_list[-1]) + 10}"
-            self.dvs_client = dvs.DVSClient(dvs_ip, DURIN_DVS_PORT_TCP)
-            self.dvs = dvs.DVSSensor((640, 480), device, self.stream_command.port + 1)
+            self.dvs_client = TCPLink(durin_ip, DURIN_DVS_PORT_TCP)
+            self.dvs = dvs.DVSSensor((640, 480), device, DURIN_DVS_PORT_TCP + 1)
         else:
             logging.debug("DVS output disabled")
 
     def __enter__(self):
         # Controller
-        self.sensor.start()
-        self.actuator.start()
-        # Start streaming
-        self(self.stream_command)
+        if self.enable_control:
+            self.sensor.start()
+            self.actuator.start()
+            # Start streaming
+            self(self.stream_command_control)
 
-        logging.debug(
-            f"Durin Controller receiving on {self.stream_command.host}:{self.stream_command.port}"
-        )
+            logging.debug(
+                f"Durin Controller receiving on {self.stream_command_control.host}:{self.stream_command_control.port}"
+            )
 
         # DVS
-        if not self.disable_dvs:
+        if self.enable_dvs:
             self.dvs.start_stream()
-            logging.debug(f"Durin DVS sending to {self.dvs_client.address}")
-            self.dvs_client.start_stream(
-                self.stream_command.host, self.stream_command.port + 1
-            )
+            self.dvs_client.start()
+            self.dvs_client.send(self.stream_command_dvs.encode(), 1000)
             logging.debug(
-                f"Durin DVS receiving on {self.stream_command.host}:{self.stream_command.port + 1}"
+                f"Durin DVS receiving on {self.stream_command_dvs.host}:{self.stream_command_dvs.port + 1}"
             )
 
         return self
 
     def __exit__(self, e, b, t):
-        self.sensor.stop()
-        self.actuator.stop()
-        if not self.disable_dvs:
-            self.dvs_client.stop_stream()
+        if self.enable_control:
+            self.sensor.stop()
+            self.actuator.stop()
+        if self.enable_dvs:
+            self.dvs_client.stop()
             self.dvs.stop_stream()
 
     def __call__(self, command):
-        return self.actuator(command)
+        if self.enable_control:
+            return self.actuator(command)
+        else:
+            logging.warn(f"Command {command} sent, but Durin controls are disabled")
 
     def update_frequency(self) -> float:
         return 1 / self.sensor.freq / 6
@@ -116,10 +123,7 @@ class Durin:
         Returns:
             Tuple of Observation, DVS tensors, and Command reply
         """
-        durin = self.sensor.read()
-        if not self.disable_dvs:
-            dvs = self.dvs.read()
-        else:
-            dvs = None
-        cmd = self.actuator.read()
-        return (durin, dvs, cmd)
+        dvs = self.dvs.read() if self.enable_dvs else None
+        obs = self.sensor.read() if self.enable_control else None
+        cmd = self.actuator.read() if self.enable_control else None
+        return (obs, dvs, cmd)
