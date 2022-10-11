@@ -8,7 +8,7 @@ def identify_inivation_camera():
     if camera is None:
         raise RuntimeError("No inivation camera connected")
     else:
-        return f"inivation {camera.bus} {camera.address} dvx"
+        return f"inivation dvx" #{camera.bus} {camera.address} dvx"
 
 
 if __name__ == "__main__":

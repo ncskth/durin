@@ -1,6 +1,7 @@
 import logging
-from durin.actuator import StreamOn
+from typing import Optional
 
+from durin.actuator import StreamOn
 from durin.actuator import DurinActuator
 from durin.io.network import TCPLink, UDPLink
 from durin.sensor import DurinSensor

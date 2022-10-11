@@ -11,6 +11,7 @@ from durin.io import decode
 from durin.io.network import TCPProducer
 from durin.io.runnable import Runnable, RunnableConsumer
 
+logging.getLogger().setLevel(logging.DEBUG)
 
 class Streamer:
     @abstractmethod
@@ -21,18 +22,9 @@ class Streamer:
     def stop_stream(self):
         pass
 
-
-def _log_thread(pipe):
-    with pipe:
-        for line in iter(pipe.readline, ""):
-            if len(line) > 0:
-                logging.warning(f"AESTREAM: {line.decode('utf-8')}")
-
-
 class AEStreamer(Streamer):
     def __init__(self) -> None:
         self.aestream = None
-        self.aestream_log = None
         # Test that aestream exists
         if subprocess.run(["which", "aestream"]).returncode > 0:
             raise RuntimeError("No aestream binary found on path")
@@ -55,11 +47,9 @@ class AEStreamer(Streamer):
             return
 
         command = f"aestream input {self.camera_string} output udp {host} {port}"
-        self.aestream = subprocess.Popen(
-            command.split(" "), stderr=subprocess.STDOUT, stdout=subprocess.PIPE
+        self.aestream = subprocess.run(
+            command.split(" "), capture_output=True, #stderr=subprocess.STDOUT, stdout=subprocess.PIPE
         )
-        self.aestream_log = Process(target=_log_thread, args=(self.aestream.stdout,))
-        self.aestream_log.start()
 
         logging.debug(f"Sending DVS to {host}:{port} with command\n\t{command}")
 
@@ -70,12 +60,8 @@ class AEStreamer(Streamer):
                 self.aestream.wait(1)
                 self.aestream.kill()
                 self.aestream.wait()
-            if self.aestream_log is not None:
-                self.aestream_log.terminate()
-                self.aestream_log.join()
             subprocess.run(["pkill", "aestream"])  # Kill remaining aestream processes
             self.aestream = None
-            self.aestream_log = None
         except Exception as e:
             logging.warning("Error when closing aestream", e)
 
@@ -126,6 +112,8 @@ class DVSServer(Runnable):
 
 class DVSCommandConsumer(RunnableConsumer):
     def consume(self, bs, streamer: AEStreamer):
+        if bs is None or len(bs) == 0:
+            return
         d = decode(bs)
         if d.which == "enableStreaming":
             destination = d.enableStreaming.destination.udpOnly
@@ -140,7 +128,7 @@ class DVSCommandConsumer(RunnableConsumer):
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
-    server = DVSServer(2301)
+    server = DVSServer(2300)
     try:
         server.start()
         server.thread.join()
