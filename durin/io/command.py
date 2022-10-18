@@ -9,7 +9,8 @@ from . import schema
 def _wrap_base(message, field):
     base = schema.DurinBase.new_message()
     setattr(base, field, message)
-    return base.to_bytes()
+    packed = base.to_bytes_packed()
+    return packed
 
 
 @dataclass

@@ -1,4 +1,6 @@
 import math
+import time
+
 import sdl2.ext
 
 import numpy as np
@@ -100,7 +102,14 @@ class DurinUI(Durin):
         self.gamepad.stop()
         return super().__exit__(e, b, t)
 
-    def read_user_input(self, allow_movement: bool = True):
+    def read_user_input(self, allow_movement: bool = True, sleep_interval: float=0.02):
+        """
+        Reads user input and sends commands to Durin based on the input
+
+        Arguments:
+            allow_movement (bool): Whether to send (True) or withold (False) commands to Durin
+            sleep_interval (float): A pause between reading user input (seconds). Deaults to 0.02. May be 0.
+        """
         events = sdl2.ext.get_events()
 
         # Gamepad
@@ -162,6 +171,9 @@ class DurinUI(Durin):
 
         if allow_movement:
             self(Move(self.horizontal, self.vertical, self.rot))
+
+        time.sleep(sleep_interval) # Sleep to avoid sending too many commands
+
         return True
 
     def render_sensors(self, obs, size: int = 180):

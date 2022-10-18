@@ -22,6 +22,12 @@ def get_ip(ip):
         s.close()
     return ip_guess
 
+def checksum(bs):
+    checksum = bs[0]
+    for b in bs[1:]:
+        checksum = checksum ^ b
+    return checksum
+
 
 class TCPProducer(RunnableProducer):
 
@@ -30,7 +36,15 @@ class TCPProducer(RunnableProducer):
             header = sock.recv(3)
             size = int.from_bytes(header[1:], 'little')
             size = size & (0b0000111111111111) # Zero out meta-bits
-            return sock.recv(size)
+            bs = sock.recv(size)
+            check_actual = int.from_bytes(sock.recv(1), 'little')
+            check_bytes = checksum(header + bs)
+            if (check_actual == check_bytes):
+                return bs
+            else:
+                logging.warning(f"Checksum failed: {check_actual} != {check_bytes}")
+                return None
+
         except BlockingIOError:
             return None
 
@@ -38,7 +52,8 @@ class TCPProducer(RunnableProducer):
 class TCPConsumer(RunnableConsumer):
 
     def consume(self, event, sock):
-        bs = b"\n" + len(event).to_bytes(2, "little") + event
+        bs = b'*' + len(event).to_bytes(2, "little") + event
+        bs = bs + checksum(bs).to_bytes(1, 'little')
         sock.send(bs)
 
 
@@ -121,7 +136,15 @@ class UDPLink(RunnableProducer):
         try:
             buffer = sock.recv(self.packet_size)
             size = int.from_bytes(buffer[1:3], "little")
-            return io.decode(buffer[3 : 3 + size])
+            size = size & (0b0000111111111111) # Zero out meta-bits
+            check_actual = int.from_bytes(buffer[3 + size : 4 + size], 'little')
+            check_bytes = checksum(buffer[:3 + size])
+            if (int(check_actual) == check_bytes):
+                msg = io.decode(buffer[3 : 3 + size])
+                return msg
+            else:
+                logging.warning(f"Checksum failed: {check_actual} != {check_bytes}")
+                return None
         except BlockingIOError:
             return None
 

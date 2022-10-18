@@ -21,7 +21,8 @@ schema = capnp.load(str((Path(__file__).parent / "schema.capnp").absolute()))
 def decode(buffer) -> List[schema.DurinBase]:
     # TODO: Use packed version later
     try:
-        return next(schema.DurinBase.from_bytes(buffer).gen)
+        msg = schema.DurinBase.from_bytes_packed(buffer)
+        return msg
     except ValueError as e:
         logging.warn("Error in decoded message", e)
     except capnp.lib.capnp.KjException as e:

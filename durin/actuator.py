@@ -23,7 +23,9 @@ class DurinActuator:
     def read(self):
         reply = self.tcp_link.read()
         if reply is not None:
-            return io.decode(reply)
+            msg = io.decode(reply)
+            return msg
+
         else:
             return None
 
