@@ -1,17 +1,21 @@
 @0xac6c6e68f4d0c7e2;
 
 
-#durin has 4Mbaud UART port and a TCP socket on port 1337
+#durin has 2Mbaud UART port and a TCP socket on port 1337
 
-const streamPeriodMax :UInt16= 65535;
+const streamPeriodMax :UInt16 = 65535;
 const streamPeriodMin :UInt16 = 0;
 const durinTcpPort :UInt16 = 1337;
+const durinBaud :UInt32 = 2000000;
+const lengthMask :UInt16 = 0x0fff;
+const metaMask :UInt16 = 0xf000;
 
 ## all types are implemented here so this is the message you want to listen for. Then you can check which field of the union you actually got
 struct DurinBase {
     union {
         reject @0 :Reject;
         acknowledge @1 :Acknowledge;
+        ping @31 :Ping;
         powerOff @2 :PowerOff;
         setRobotVelocity @3 :SetRobotVelocity; 
         setWheelVelocity @4 :SetWheelVelocity;
@@ -34,12 +38,13 @@ struct DurinBase {
         getSystemStatus @17 :GetSystemStatus;
         systemStatus @18 :SystemStatus;
 
-        getDistanceMeasurement @19 :GetDistanceMeasurement;
-        distanceMeasurement @20 :DistanceMeasurement;
-
         setPositionStreamPeriod @21 :SetPositionStreamPeriod;
         getPosition @22 :GetPosition;
         position @23 :Position;
+
+        setUwbStreamPeriod @32 :SetUwbStreamPeriod;
+        getUwbNodes @19 :GetUwbNodes;
+        uwbNodes @20 :UwbNodes;
 
         setWifiConfig @24 :SetWifiConfig;
         setNodeId @25 :SetNodeId;
@@ -138,13 +143,13 @@ struct GetTofObservations {
     ids @0 :List(UInt8);
 }
 
-# Sets the resolution and update rate for the TOF sensors 
+# Sets the resolution and update rate for the TOF sensors
+enum TofResolutions {
+    resolution4x4rate60Hz @0;
+    resolution8x8rate15Hz @1;
+} 
 struct SetTofResolution {
     resolution @0 :TofResolutions;
-    enum TofResolutions {
-        resolution4x4rate30Hz @0;
-        resolution8x8rate15Hz @1;
-    }
 }
 
 # A list with TOF observations
@@ -179,19 +184,20 @@ struct GetImuMeasurement {
 }
 
 # an imu measurement
-# acceleration in Gs
-# rotationals velocity in rad/s
-# magnetfield in microTesla
+# raw values. Use the scaling factors to get metric
+const accelerometerToGs :Float32 = 1;
+const gyroscopeToRadiansPerSecond :Float32 = 1;
+const magnetometerToMicroTesla :Float32 = 1;
 struct ImuMeasurement {
-    accelerometerXG @0 :Float32;
-    accelerometerYG @1 :Float32;
-    accelerometerZG @2 :Float32;
-    gyroscopeXRads @3 :Float32;
-    gyroscopeYRads @4 :Float32;
-    gyroscopeZRads @5 :Float32;
-    magnetometerXUt @6 :Float32;
-    magnetometerYUt @7 :Float32;
-    magnetometerZUt @8 :Float32;
+    accelerometerX @0 :Int16;
+    accelerometerY @1 :Int16;
+    accelerometerZ @2 :Int16;
+    gyroscopeX @3 :Int16;
+    gyroscopeY @4 :Int16;
+    gyroscopeZ @5 :Int16;
+    magnetometerX @6 :Int16;
+    magnetometerY @7 :Int16;
+    magnetometerZ @8 :Int16;
 }
 
 
@@ -246,14 +252,51 @@ struct SetPositionStreamPeriod {
 
 # gets the position as caluclated from UWB beacons, responds over the same channel as the request was sent (UART or TCP)
 struct GetPosition {
-    
+   
+}
+
+enum UwbNodePurpose {
+    origin @0;
+    x @1;
+    y @2;
+    z @3;
+    repeater @4;
+    passive @5;
+    user @6;
+}
+
+struct UwbNode {
+    nodeId @0 :UInt8;
+    purpose @1 :UwbNodePurpose;
+    distanceMm @2 :UInt32;
+    flags @3 :UInt32;
+    position :union {
+        unknown @4 :Void;
+        vectorMm :group {
+            x @5 :Int32;
+            y @6 :Int32;
+            z @7 :Int32;
+        }
+    }
+}
+
+struct GetUwbNodes {
+
+}
+
+struct SetUwbStreamPeriod {
+    periodMs @0 :UInt16;
+}
+
+struct UwbNodes {
+    nodes @0 :List(UwbNode);
 }
 
 # X, Y, Z in millimeters
 struct Position {
     union {
         unknown @0 :Void;
-        vector :group {
+        vectorMm :group {
             x @1 :Int32;
             y @2 :Int32;
             z @3 :Int32;
@@ -299,4 +342,18 @@ struct EnableLogging {
         uart @2 :Void;
         both @3 :Void;
     }
+}
+
+struct Ping {
+
+}
+
+enum ErrorType {
+    wheelVelocityTooHigh @0;
+    positioningHighDisplacement @1;
+}
+
+struct Error {
+    type @0 :ErrorType;
+    string @1 :Text;
 }
