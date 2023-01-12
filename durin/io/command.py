@@ -80,11 +80,12 @@ class MoveWheels(Command):
     """
 
     def __init__(self, front_left, front_right, back_left, back_right):
+        MAX_VALUE = 10000
         self.cmd_id = 3
-        self.front_left = int(front_left)
-        self.front_right = int(front_right)
-        self.back_left = int(back_left)
-        self.back_right = int(back_right)
+        self.front_left = min(MAX_VALUE, int(front_left))
+        self.front_right = min(MAX_VALUE, int(front_right))
+        self.back_left = min(MAX_VALUE, int(back_left))
+        self.back_right = min(MAX_VALUE, int(back_right))
 
     def encode(self):
         return _wrap_base(
@@ -93,7 +94,7 @@ class MoveWheels(Command):
                 wheelFrontRightMms=self.front_right,
                 wheelBackLeftMms=self.back_left,
                 wheelBackRightMms=self.back_right,
-            )
+            ), "setWheelVelocity"
         )
 
     def __repr__(self) -> str:

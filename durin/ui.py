@@ -166,8 +166,8 @@ class DurinUI(Durin):
                     or event.key.keysym.sym == sdl2.SDLK_d
                 ):
                     self.horizontal = 0
-            elif event.type == sdl2.SDL_MOUSEMOTION:
-                self.rot = int(self.rot + min(10, max(-10, event.motion.xrel)) * 2)
+            # elif event.type == sdl2.SDL_MOUSEMOTION:
+            #     self.rot = int(self.rot + min(10, max(-10, event.motion.xrel)) * 2)
 
         if allow_movement:
             self(Move(self.horizontal, self.vertical, self.rot))

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import logging
 import multiprocessing
 import time
 from typing import Generic, NamedTuple, Tuple, TypeVar
@@ -91,20 +92,23 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
         timestamp_update,
     ):
         which = item.which()
-        if which == "tofObservations":
-            for obs in item.tofObservations.observations:
-                data = np.array(obs.ranges)
-                tof.get_obj()[obs.id * 64: (obs.id + 1) * 64] = data
-        elif which == "systemStatus":
-            charge.value = item.systemStatus.batteryPercent
-            voltage.value = item.systemStatus.batteryMv
-        # TODO: Add more sensors
+        try:
+            if which == "tofObservations":
+                for obs in item.tofObservations.observations:
+                    data = np.array(obs.ranges)
+                    tof.get_obj()[obs.id * 64: (obs.id) * 64 + 16] = data
+            elif which == "systemStatus":
+                charge.value = item.systemStatus.batteryPercent
+                voltage.value = item.systemStatus.batteryMv
+            # TODO: Add more sensors
 
-        # Update Hz
-        time_now = time.time()
-        buffer = RingBuffer(np.frombuffer(ringbuffer.get_obj()))
-        buffer.counter = ringbuffer_idx.value
-        buffer.append(time_now - timestamp_update.value)
-        ringbuffer.get_obj()[:] = buffer.buffer
-        ringbuffer_idx.value = buffer.counter
-        timestamp_update.value = time_now
+            # Update Hz
+            time_now = time.time()
+            buffer = RingBuffer(np.frombuffer(ringbuffer.get_obj()))
+            buffer.counter = ringbuffer_idx.value
+            buffer.append(time_now - timestamp_update.value)
+            ringbuffer.get_obj()[:] = buffer.buffer
+            ringbuffer_idx.value = buffer.counter
+            timestamp_update.value = time_now
+        except Exception as e:
+            logging.warning("Error when receiving sensor data " + str(e))
