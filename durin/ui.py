@@ -166,8 +166,8 @@ class DurinUI(Durin):
                     or event.key.keysym.sym == sdl2.SDLK_d
                 ):
                     self.horizontal = 0
-            # elif event.type == sdl2.SDL_MOUSEMOTION:
-            #     self.rot = int(self.rot + min(10, max(-10, event.motion.xrel)) * 2)
+            elif event.type == sdl2.SDL_MOUSEMOTION:
+                self.rot = int(self.rot + min(10, max(-10, event.motion.xrel)) * 2)
 
         if allow_movement:
             self(Move(self.horizontal, self.vertical, self.rot))
@@ -177,7 +177,8 @@ class DurinUI(Durin):
         return True
 
     def render_sensors(self, obs, size: int = 180):
-        tofs = (np.tanh((obs.tof / 500)) * 255).astype(np.int32)
+        tofs = (np.tanh((obs.tof / 1000)) * 255).astype(np.int32)
+        # tofs = np.cosh((obs.tof / 100) * 255).astype(np.int32)
         width, height = self.pixels.shape
         for idt, tof in enumerate(tofs):
             xr, yr = SENSOR_PLACEMENTS[idt]
