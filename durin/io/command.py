@@ -115,14 +115,31 @@ class MoveWheels(Command):
 
 #         return data
 
+class SetSensorPeriod(Command):
+
+    _SUPPORTED_SENSORS = ["tof", "imu", "status", "position", "uwb"]
+
+    def __init__(self, sensor: str, period: int):
+        """
+        Sets how often a given sensor should report to the client in ms.
+        """
+        if not sensor.lower() in self._SUPPORTED_SENSORS:
+            raise ValueError(f"Sensor '{sensor}' unsupported. Please choose from {self._SUPPORTED_SENSORS}")
+        self.sensor = sensor
+        self.period = period
+
+    def encode(self):
+        message_type = f"Set{self.sensor.title()}StreamPeriod"
+        message = getattr(schema, message_type).new_message()
+        message.periodMs = self.period
+        return _wrap_base(message, message_type[0].lower() + message_type[1:])
+
 
 class StreamOn(Command):
-    def __init__(self, host, port, period):
+    def __init__(self, host, port):
         self.cmd_id = 18
         self.host = host
         self.port = port
-        self.period = period
-        # TODO: Set streaming frequency
 
     def encode(self):
         enable_message = schema.EnableStreaming.new_message()
