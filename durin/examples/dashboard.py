@@ -1,5 +1,6 @@
 from durin import DurinUI
 
+
 if __name__ == "__main__":
 
     # We start a connection to the robot

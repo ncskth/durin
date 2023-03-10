@@ -50,13 +50,13 @@ class Durin:
     ):
         if stream_command is not None:
             self.stream_command_control = stream_command
-            self.stream_command_dvs = StreamOn(stream_command.host, DURIN_DVS_PORT_TCP + 1, 1)
+            self.stream_command_dvs = StreamOn(stream_command.host, DURIN_DVS_PORT_TCP + 1)
         else:
             response_ip = durin.io.network.get_ip(durin_ip)
             self.stream_command_control = StreamOn(
-                response_ip, DURIN_CONTROLLER_PORT_UDP, sensor_frequency
+                response_ip, DURIN_CONTROLLER_PORT_UDP
             )
-            self.stream_command_dvs = StreamOn(response_ip, DURIN_DVS_PORT_TCP + 1, 1)
+            self.stream_command_dvs = StreamOn(response_ip, DURIN_DVS_PORT_TCP + 1)
 
         # Controller
         self.enable_control = enable_control
