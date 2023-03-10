@@ -17,6 +17,8 @@ DVS_WIDTH = 640
 
 import numpy as np
 
+# test
+
 SENSOR_PLACEMENTS = [
     (0.97, 0.5),
     (0.97, 0.03),
