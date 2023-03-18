@@ -1,4 +1,4 @@
-from durin import DurinUI
+from durin import *
 
 
 if __name__ == "__main__":
@@ -9,6 +9,17 @@ if __name__ == "__main__":
     with DurinUI("durin1.local") as durin:
         # Loop until the user quits
         is_running = True
+
+        sensor_frequencies = (["Tof", 1000],
+                              ["Imu", 1000],
+                              ["Position", 1000],
+                              ["SystemStatus", 1000],
+                              ["Uwb", 1000],
+                              )
+
+        for sensor in sensor_frequencies:
+            durin(SetSensorPeriod(sensor[0],sensor[1]))
+
         while is_running:
 
             # Read a value from durin

@@ -11,6 +11,7 @@ from durin.actuator import Move
 
 from durin.durin import Durin
 from durin.io.gamepad import Gamepad
+import durin
 
 
 # Constants
@@ -105,7 +106,7 @@ class DurinUI(Durin):
             self.surfaces.append(surface)
 
         pygame.display.update()
-        #s"""
+
 
 
 
@@ -113,7 +114,8 @@ class DurinUI(Durin):
     
     def __exit__(self, e, b, t):
         pygame.quit()
-        #self.gamepad.stop()
+        self.gamepad.stop()
+        exit()
         return super().__exit__(e, b, t)
     
     def read_user_input(self, allow_movement: bool = True, sleep_interval: float=0.02):

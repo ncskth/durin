@@ -84,7 +84,6 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
             self.ringbuffer_idx,
             self.timestamp_update,
             self.position,
-
             self.uwb_ringbuffer,
             self.uwb_ringbuffer_idx
         )
@@ -136,12 +135,10 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
         imu_ringbuffer,
         imu_ringbuffer_idx,
         uwb,
-        ringbuffer,
-        ringbuffer_idx,
-        timestamp_update,
-        position,
         uwb_ringbuffer,
-        uwb_ringbuffer_idx
+        uwb_ringbuffer_idx,
+        position,
+
     ):
         which = item.which()
 
@@ -150,11 +147,13 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
                 for obs in item.tofObservations.observations:
                     data = np.array(obs.ranges)
                     tof.get_obj()[obs.id * 64: (obs.id+1) * 64] = data
-
                 self._update_frequency(tof_ringbuffer, tof_ringbuffer_idx)
+
+
             elif which == "systemStatus":
                 voltage.value = item.systemStatus.batteryMv
                 charge.value = item.systemStatus.batteryPercent
+                self._update_frequency(status_ringbuffer, status_ringbuffer_idx)
 
 
             elif which == "imuMeasurement":
@@ -163,6 +162,8 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
                             item.imuMeasurement.magnetometerX, item.imuMeasurement.magnetometerY, item.imuMeasurement.magnetometerZ]
                 for i in range(9):
                     imu.get_obj()[i] = imu_quantity[i]
+                self._update_frequency(imu_ringbuffer, imu_ringbuffer_idx)
+
 
             
             elif which == "uwbNodes":
@@ -173,6 +174,7 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
                 for i in range(len(node_list)):
                     data = np.array([node_list[i].nodeId, node_list[i].distanceMm])
                     uwb.get_obj()[i*2:(i*2)+2] = data
+                self._update_frequency(uwb_ringbuffer, uwb_ringbuffer_idx)
 
             try:
                 if which == "position":
@@ -181,23 +183,6 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
             except:
                 pass
                 
-            
-            
-            # TODO: Add more sensors
-
-            # Update Hz
-            time_now = time.time()
-            buffer = RingBuffer(np.frombuffer(ringbuffer.get_obj()))
-            buffer.counter = ringbuffer_idx.value
-            buffer.append(time_now - timestamp_update.value)
-            ringbuffer.get_obj()[:] = buffer.buffer
-            ringbuffer_idx.value = buffer.counter
-            timestamp_update.value = time_now
-
-
-            self._update_frequency(status_ringbuffer, status_ringbuffer_idx)
-
-            # TODO: Add more sensors
         except Exception as e:
             logging.warning("Error when receiving sensor data " + str(e))
 

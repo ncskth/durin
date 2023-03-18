@@ -357,3 +357,16 @@ struct Error {
     type @0 :ErrorType;
     string @1 :Text;
 }
+
+
+struct GetSystemInfo {
+
+}
+
+struct SystemInfo {
+    mac @0 :Text;
+    ip @1 :Text;
+    hostname @2 :Text;
+    id @3 :UInt8;
+    uptimeMs @4 :UInt32;
+}

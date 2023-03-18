@@ -117,19 +117,22 @@ class MoveWheels(Command):
 
 class SetSensorPeriod(Command):
 
-    _SUPPORTED_SENSORS = ["tof", "imu", "status", "position", "uwb"]
+    _SUPPORTED_SENSORS = ["Tof", "Imu", "SystemStatus", "Position", "Uwb"]
 
     def __init__(self, sensor: str, period: int):
         """
         Sets how often a given sensor should report to the client in ms.
         """
-        if not sensor.lower() in self._SUPPORTED_SENSORS:
+        if not sensor in self._SUPPORTED_SENSORS:
             raise ValueError(f"Sensor '{sensor}' unsupported. Please choose from {self._SUPPORTED_SENSORS}")
+        
+        
         self.sensor = sensor
         self.period = period
 
     def encode(self):
-        message_type = f"Set{self.sensor.title()}StreamPeriod"
+        message_type = f"Set" + self.sensor + "StreamPeriod"
+
         message = getattr(schema, message_type).new_message()
         message.periodMs = self.period
         return _wrap_base(message, message_type[0].lower() + message_type[1:])

@@ -65,7 +65,7 @@ class Durin:
             udp_link = UDPLink(self.stream_command_control.host, self.stream_command_control.port)
             self.sensor = DurinSensor(udp_link)
             self.actuator = DurinActuator(tcp_link)
-
+            
         # DVS
         self.enable_dvs = enable_dvs
         if self.enable_dvs:
