@@ -12,7 +12,6 @@ class DurinActuator:
 
     def __call__(self, action: Command, timeout: float = 0.05):
         command_bytes = action.encode()
-
         try:
             self.tcp_link.send(command_bytes, timeout=timeout)
         except queue.Full:

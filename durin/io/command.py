@@ -135,6 +135,7 @@ class SetSensorPeriod(Command):
 
         message = getattr(schema, message_type).new_message()
         message.periodMs = self.period
+
         return _wrap_base(message, message_type[0].lower() + message_type[1:])
 
 

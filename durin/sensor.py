@@ -80,12 +80,10 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
             self.imu_ringbuffer,
             self.imu_ringbuffer_idx,
             self.uwb,
-            self.ringbuffer,
-            self.ringbuffer_idx,
-            self.timestamp_update,
-            self.position,
             self.uwb_ringbuffer,
-            self.uwb_ringbuffer_idx
+            self.uwb_ringbuffer_idx,
+            self.position,
+
         )
 
     def _read_buffer_frequency(self, buffer, index):

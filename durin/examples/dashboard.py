@@ -1,4 +1,5 @@
 from durin import *
+import time
 
 
 if __name__ == "__main__":
@@ -10,15 +11,17 @@ if __name__ == "__main__":
         # Loop until the user quits
         is_running = True
 
-        sensor_frequencies = (["Tof", 1000],
-                              ["Imu", 1000],
-                              ["Position", 1000],
+        sensor_frequencies = (["Imu", 20],
+                              ["Position", 20],
                               ["SystemStatus", 1000],
-                              ["Uwb", 1000],
+                              ["Uwb", 20],
+                              ["Tof", 20],
                               )
 
+        
         for sensor in sensor_frequencies:
             durin(SetSensorPeriod(sensor[0],sensor[1]))
+
 
         while is_running:
 

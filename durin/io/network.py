@@ -64,8 +64,8 @@ class TCPLink:
         self,
         host: str,
         port: str,
-        buffer_size_send: int = 2,
-        buffer_size_receive: int = 100,
+        buffer_size_send: int = 50,
+        buffer_size_receive: int = 2000,
     ):
         address = (host, int(port))
         context = multiprocessing.get_context("spawn")
@@ -102,6 +102,7 @@ class TCPLink:
         try:
             self.buffer_send.put(command, block=False, timeout=timeout)
         except Full:
+            print("hej")
             return None
 
     def read(self) -> Optional[ByteString]:
