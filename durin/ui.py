@@ -59,6 +59,10 @@ class DurinUI(Durin):
         super().__init__(*args, **kwargs)
         self.gamepad = Gamepad()
 
+        self.ip = None
+        self.mac = None
+        self.id = None
+
         self.vertical = 0
         self.horizontal = 0
         self.tau = 0.9999
@@ -229,7 +233,6 @@ class DurinUI(Durin):
         for m in range(3):
             self.render_text(str(obs.position[m]), POSITION_PLACEMENT[m])
 
-        
         self.render_static_texts()
 
         # Just for debugging.
@@ -267,6 +270,11 @@ class DurinUI(Durin):
         self.render_text("MAC address", (IP_PLACEMENT[0]+5*d,IP_PLACEMENT[1]), "o")
         self.render_text("Durin ID", (IP_PLACEMENT[0]+10*d,IP_PLACEMENT[1]), "o")
 
+        self.render_text(str(self.ip), (IP_PLACEMENT[0],IP_PLACEMENT[1]+d))
+        self.render_text(str(self.mac), (IP_PLACEMENT[0]+5*d,IP_PLACEMENT[1]+d))
+        self.render_text(str(self.id), (IP_PLACEMENT[0]+10*d,IP_PLACEMENT[1]+d))
+
+
         self.render_text("Integrated IMU data", (IMU_INTEG_PLACEMENT), "o")
 
 
@@ -291,6 +299,10 @@ class DurinUI(Durin):
         self.render_text("y",(POSITION_PLACEMENT[1][0],POSITION_PLACEMENT[0][1]-d),"b")
         self.render_text("z",(POSITION_PLACEMENT[2][0],POSITION_PLACEMENT[0][1]-d),"b")
     
+    def set_ip_mac_id(self, ip, mac, id):
+        self.ip = ip
+        self.mac = mac
+        self.id = id
 
 
 

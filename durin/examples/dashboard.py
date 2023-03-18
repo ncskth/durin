@@ -22,6 +22,23 @@ if __name__ == "__main__":
         for sensor in sensor_frequencies:
             durin(SetSensorPeriod(sensor[0],sensor[1]))
 
+        
+        durin(GetSystemInfo())  # Ask to get IP address, MAC address and Durin ID
+        gotSystemInfo = False
+
+        while not gotSystemInfo:
+            """ Wait until IP address, MAC address, and Durin ID are read"""
+            try:
+                (obs, dvs, cmd) = durin.read()
+                ip = cmd.systemInfo.ip
+                mac = cmd.systemInfo.mac
+                id = cmd.systemInfo.id
+                durin.set_ip_mac_id(ip,mac,id)
+                gotSystemInfo = True
+
+            except:
+                pass
+
 
         while is_running:
 
