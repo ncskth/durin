@@ -35,21 +35,25 @@ SENSOR_ROTATIONS = [180, 180+45, -90, 180-45, 90, 45, -45, 0]
 # A distance (in % of screen size) constant related to the layout.
 d= 0.02
 x=0.68
+y0 = 0.1
 
-TITLE_PLACEMENT = (x, 0.1)
+TITLE_PLACEMENT = (x, 0.05)
+
+INSTR_PLACEMENT = (x, 0.05+2*d)          # Keyboard instruction (static text)
 
 IP_PLACEMENT = (x, 0.1 + 3* d)
 
 BATTERY_PLACEMENT = (x,0.1 + 8*d)
 
-IMU_PLACEMENT = (x+2*d, 0.1 +14*d)  # Upper left corner
+IMU_PLACEMENT = (x, 0.1 +11*d)  # Upper left corner
 
-IMU_INTEG_PLACEMENT = (x, 0.1 + 19*d)
+IMU_INTEG_PLACEMENT = (x, 0.1 + 17*d)
 
-POSITION_PLACEMENT = [(x,0.1+26*d), (x+2*d,0.1+26*d), (x+ 4*d, 0.1+26*d)]
+POSITION_PLACEMENT = (x,0.1+21*d)
 
-UWB_PLACEMENT = (x, 0.1+32*d)              # Upper left corner
+MV_CMD_PLACEMENT = (x+7*d,0.1+21*d)         # Movement command placement
 
+UWB_PLACEMENT = (x, 0.1+25*d)              # Upper left corner
 
 
 
@@ -73,7 +77,7 @@ class DurinUI(Durin):
 
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont(None, 24)
+        self.font = pygame.font.SysFont(None, 22)
         self.big_font = pygame.font.SysFont(None, 34)
 
 
@@ -94,7 +98,7 @@ class DurinUI(Durin):
             ctypes.windll.user32.ShowWindow(HWND, SW_MAXIMIZE)
         
         # Durin Image
-        resource_file = "durin\durin\durin_birdseye.jpg"
+        resource_file = "durin\durin_birdseye.jpg"
         resource_path = os.path.join(os.getcwd(), resource_file)
         self.image = pygame.image.load(resource_path)
         self.image = pygame.transform.scale(self.image, (1.75*self.screen_width//3, self.screen_height))
@@ -158,7 +162,7 @@ class DurinUI(Durin):
         if allow_movement:
             self(Move(self.horizontal, self.vertical, self.rot))
 
-        time.sleep(sleep_interval) # Sleep to avoid sending too many commands
+        # time.sleep(sleep_interval) # Sleep to avoid sending too many commands
 
         return True
         
@@ -207,8 +211,8 @@ class DurinUI(Durin):
 
         for i in range(10):
             if uwb[i][0] != 0:
-                self.render_text(str(uwb[i][0]), (UWB_PLACEMENT[0], UWB_PLACEMENT[1] + i*d))
-                self.render_text(str(uwb[i][1]), (UWB_PLACEMENT[0]+ 5*d, UWB_PLACEMENT[1]+i*d))
+                self.render_text(str(uwb[i][0]), (UWB_PLACEMENT[0], UWB_PLACEMENT[1] + (i+1)*d))
+                self.render_text(str(uwb[i][1]), (UWB_PLACEMENT[0]+ 7*d, UWB_PLACEMENT[1]+(i+1)*d))
             else:
                 break
 
@@ -219,7 +223,7 @@ class DurinUI(Durin):
         #type = ["Acce", "Gyro", "Magn."]
         for type in range(3):
             for xyz in range(3):
-                self.render_text(str(imu[type][xyz]), (IMU_PLACEMENT[0]+xyz*3*d, IMU_PLACEMENT[1]+type*d))
+                self.render_text(str(imu[type][xyz]), (IMU_PLACEMENT[0]+(xyz+1)*3*d, IMU_PLACEMENT[1]+(type+1)*d))
         
 
         # Update battery level and voltage ######################
@@ -231,18 +235,23 @@ class DurinUI(Durin):
 
         # Update Durin position ######################
         for m in range(3):
-            self.render_text(str(obs.position[m]), POSITION_PLACEMENT[m])
+            self.render_text(str(obs.position[m]), (POSITION_PLACEMENT[0]+2*m, POSITION_PLACEMENT[1]+2*d))
+
+        # Update movement commands ################
+        self.render_text(str(self.horizontal),(MV_CMD_PLACEMENT[0],MV_CMD_PLACEMENT[1]+2*d))
+        self.render_text(str(self.vertical),(MV_CMD_PLACEMENT[0]+2*d,MV_CMD_PLACEMENT[1]+2*d))
+        self.render_text(str(self.rot),(MV_CMD_PLACEMENT[0]+4*d,MV_CMD_PLACEMENT[1]+2*d))
 
         self.render_static_texts()
 
         # Just for debugging.
         self.a += 1
-        self.render_text("Time step (for debugging): " + str(self.a),(UWB_PLACEMENT[0],UWB_PLACEMENT[1]+10*d))
+        #self.render_text("Time step (for debugging): " + str(self.a),(UWB_PLACEMENT[0],UWB_PLACEMENT[1]+10*d))
 
         # Update screen
         pygame.display.update()
 
-        #self.clock.tick(100)
+        self.clock.tick(25)
 
     
     def render_text(self, input_text, position, color="w", size = "small"):
@@ -264,40 +273,56 @@ class DurinUI(Durin):
     def render_static_texts(self):
         # Static texts¨
 
+        # Dashboard title
         self.render_text("Durin Dashboard", TITLE_PLACEMENT, "t", "big")
 
+        # Titles for Durin IP, MAC and ID
         self.render_text("IP address", IP_PLACEMENT, "o")
         self.render_text("MAC address", (IP_PLACEMENT[0]+5*d,IP_PLACEMENT[1]), "o")
         self.render_text("Durin ID", (IP_PLACEMENT[0]+10*d,IP_PLACEMENT[1]), "o")
 
+        # The IP, MAC and ID values
         self.render_text(str(self.ip), (IP_PLACEMENT[0],IP_PLACEMENT[1]+d))
         self.render_text(str(self.mac), (IP_PLACEMENT[0]+5*d,IP_PLACEMENT[1]+d))
         self.render_text(str(self.id), (IP_PLACEMENT[0]+10*d,IP_PLACEMENT[1]+d))
 
+        # IMU-related titles
+        self.render_text("IMU data",(IMU_PLACEMENT[0],IMU_PLACEMENT[1]), "o")
+        self.render_text("x",(IMU_PLACEMENT[0]+3*d,IMU_PLACEMENT[1]), "b")
+        self.render_text("y",(IMU_PLACEMENT[0]+6*d,IMU_PLACEMENT[1]),"b")
+        self.render_text("z",(IMU_PLACEMENT[0]+9*d,IMU_PLACEMENT[1]),"b")
+        self.render_text("Acce",(IMU_PLACEMENT[0],IMU_PLACEMENT[1]+d),"b")
+        self.render_text("Gyro",(IMU_PLACEMENT[0],IMU_PLACEMENT[1]+2*d),"b")
+        self.render_text("Magn",(IMU_PLACEMENT[0],IMU_PLACEMENT[1]+3*d),"b")
 
+        # Integrated IMU title
         self.render_text("Integrated IMU data", (IMU_INTEG_PLACEMENT), "o")
 
-
-
-        self.render_text("UWB ID", (UWB_PLACEMENT[0],UWB_PLACEMENT[1]-2*d), "o")
-        self.render_text("Distance (mm)", (UWB_PLACEMENT[0]+5*d,UWB_PLACEMENT[1]-2*d), "o")
-
-        self.render_text("IMU data",(IMU_PLACEMENT[0]-2*d,IMU_PLACEMENT[1]-3*d), "o")
-        self.render_text("x",(IMU_PLACEMENT[0],IMU_PLACEMENT[1]-d), "b")
-        self.render_text("y",(IMU_PLACEMENT[0]+3*d,IMU_PLACEMENT[1]-d),"b")
-        self.render_text("z",(IMU_PLACEMENT[0]+6*d,IMU_PLACEMENT[1]-d),"b")
-        self.render_text("Acce",(IMU_PLACEMENT[0]-2*d,IMU_PLACEMENT[1]),"b")
-        self.render_text("Gyro",(IMU_PLACEMENT[0]-2*d,IMU_PLACEMENT[1]+d),"b")
-        self.render_text("Magn",(IMU_PLACEMENT[0]-2*d,IMU_PLACEMENT[1]+2*d),"b")
-
+        # Battery related titles
         self.render_text("Battery level",(BATTERY_PLACEMENT[0],BATTERY_PLACEMENT[1]-d), "o")
         self.render_text("Voltage",(BATTERY_PLACEMENT[0]+5*d,BATTERY_PLACEMENT[1]-d), "o")
 
+        # Durin coordinate titles
+        self.render_text("Durin coordinates",(POSITION_PLACEMENT[0],POSITION_PLACEMENT[1]), "o")
+        self.render_text("x",(POSITION_PLACEMENT[0],POSITION_PLACEMENT[1]+d),"b")
+        self.render_text("y",(POSITION_PLACEMENT[0]+2*d,POSITION_PLACEMENT[1]+d),"b")
+        self.render_text("z",(POSITION_PLACEMENT[0]+4*d,POSITION_PLACEMENT[1]+d),"b")
 
-        self.render_text("Durin coordinates",(POSITION_PLACEMENT[0][0],POSITION_PLACEMENT[0][1]-3*d), "o")
-        self.render_text("x",(POSITION_PLACEMENT[0][0],POSITION_PLACEMENT[0][1]-d),"b")
-        self.render_text("y",(POSITION_PLACEMENT[1][0],POSITION_PLACEMENT[0][1]-d),"b")
-        self.render_text("z",(POSITION_PLACEMENT[2][0],POSITION_PLACEMENT[0][1]-d),"b")
+        # Instructions for keyboard shortcuts
+        keyboard_instruction = "Use the keys w, a, s, d or arrow keys or a gamepad"
+        keyboard_instruction2 = "to move Durin."
+        self.render_text(keyboard_instruction,INSTR_PLACEMENT)
+        self.render_text(keyboard_instruction2,(INSTR_PLACEMENT[0],INSTR_PLACEMENT[1]+d))
+
+        # Movement commands titles
+        self.render_text("Movement commands", MV_CMD_PLACEMENT, "o")
+        self.render_text("x",(MV_CMD_PLACEMENT[0],MV_CMD_PLACEMENT[1]+d),"b")
+        self.render_text("y",(MV_CMD_PLACEMENT[0]+2*d,MV_CMD_PLACEMENT[1]+d),"b")
+        self.render_text("rot",(MV_CMD_PLACEMENT[0]+4*d,MV_CMD_PLACEMENT[1]+d),"b")
+
+        # UWB related titles
+        self.render_text("UWB ID", (UWB_PLACEMENT[0],UWB_PLACEMENT[1]), "o")
+        self.render_text("Distance (mm)", (UWB_PLACEMENT[0]+7*d,UWB_PLACEMENT[1]), "o")
     
     def set_ip_mac_id(self, ip, mac, id):
         self.ip = ip
