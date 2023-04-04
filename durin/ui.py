@@ -97,9 +97,9 @@ class DurinUI(Durin):
             SW_MAXIMIZE = 3
             ctypes.windll.user32.ShowWindow(HWND, SW_MAXIMIZE)
 
-        
+
         # Durin Image
-        resource_file = "durin\durin_birdseye.jpg"
+        resource_file = "durin/durin_birdseye.jpg"
         resource_path = os.path.join(os.getcwd(), resource_file)
         self.image = pygame.image.load(resource_path)
         self.image = pygame.transform.scale(self.image, (1.75*self.screen_width//3, self.screen_height))
@@ -120,12 +120,12 @@ class DurinUI(Durin):
 
 
         return super().__enter__()
-    
+
     def __exit__(self, e, b, t):
         pygame.quit()
         self.gamepad.stop()
         return super().__exit__(e, b, t)
-    
+
     def read_user_input(self, allow_movement: bool = True, sleep_interval: float=0.02):
         keys = pygame.key.get_pressed()
 
@@ -135,11 +135,11 @@ class DurinUI(Durin):
             self.horizontal = x
             self.vertical = y
             self.rot = r
-        
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 return False
-            
+
             # Keyboard
             elif event.type == pygame.KEYDOWN:
                 # Key pressed
@@ -171,14 +171,14 @@ class DurinUI(Durin):
         # time.sleep(sleep_interval) # Sleep to avoid sending too many commands
 
         return True
-        
-    
+
+
     def render_sensors(self, obs, size: int = 180):
 
         self.screen.fill((0,0,0))   # Fill screen with black
         self.screen.blit(self.image_surface, (0,0))
 
-        
+
         # Update ToF-sensors ######################
         tofs = (np.tanh((obs.tof / 1000)) * 255).astype(np.int32)
 
@@ -208,7 +208,7 @@ class DurinUI(Durin):
 
         for i in range(8):
             self.screen.blit(rotated_surfaces[i], (SENSOR_PLACEMENTS[i][0]*self.screen_width,SENSOR_PLACEMENTS[i][1]*self.screen_height))
-                
+
         # Update UWB ######################
 
         uwb = obs.uwb
@@ -230,7 +230,7 @@ class DurinUI(Durin):
         for type in range(3):
             for xyz in range(3):
                 self.render_text(str(imu[type][xyz]), (IMU_PLACEMENT[0]+(xyz+1)*3*d, IMU_PLACEMENT[1]+(type+1)*d))
-        
+
 
         # Update battery level and voltage ######################
         voltage = obs.voltage
@@ -259,7 +259,7 @@ class DurinUI(Durin):
 
         # self.clock.tick(25)
 
-    
+
     def render_text(self, input_text, position, color="w", size = "small"):
         if color == "w":
             c = (255,255,255)
@@ -329,7 +329,7 @@ class DurinUI(Durin):
         # UWB related titles
         self.render_text("UWB ID", (UWB_PLACEMENT[0],UWB_PLACEMENT[1]), "o")
         self.render_text("Distance (mm)", (UWB_PLACEMENT[0]+7*d,UWB_PLACEMENT[1]), "o")
-    
+
     def set_ip_mac_id(self, ip, mac, id):
         self.ip = ip
         self.mac = mac

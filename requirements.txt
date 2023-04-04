@@ -4,3 +4,4 @@ pycapnp
 pyusb
 pysdl2
 pysdl2-dll
+pygame
