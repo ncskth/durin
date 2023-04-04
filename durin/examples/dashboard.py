@@ -1,4 +1,4 @@
-from durin import *
+from durin import DurinUI, SetSensorPeriod, GetSystemInfo
 import time
 import sys
 
@@ -56,4 +56,4 @@ if __name__ == "__main__":
             # Read user input and quit, if asked
             is_running = durin.read_user_input()
 
-            time.sleep(0.005)
+            time.sleep(0.02)

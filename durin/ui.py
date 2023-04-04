@@ -97,7 +97,6 @@ class DurinUI(Durin):
             SW_MAXIMIZE = 3
             ctypes.windll.user32.ShowWindow(HWND, SW_MAXIMIZE)
 
-        print("width",self.screen_width)
         
         # Durin Image
         resource_file = "durin\durin_birdseye.jpg"
