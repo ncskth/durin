@@ -125,7 +125,6 @@ class DurinUI(Durin):
     def __exit__(self, e, b, t):
         pygame.quit()
         self.gamepad.stop()
-        exit()
         return super().__exit__(e, b, t)
     
     def read_user_input(self, allow_movement: bool = True, sleep_interval: float=0.02):
@@ -139,9 +138,7 @@ class DurinUI(Durin):
             self.rot = r
         
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                print("hej")
-
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 return False
             
             # Keyboard
