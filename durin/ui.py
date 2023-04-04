@@ -99,7 +99,7 @@ class DurinUI(Durin):
 
         
         # Durin Image
-        resource_file = "durin\durin_birdseye.jpg"
+        resource_file = "durin/durin_birdseye.jpg"
         resource_path = os.path.join(os.getcwd(), resource_file)
         self.image = pygame.image.load(resource_path)
         self.image = pygame.transform.scale(self.image, (1.75*self.screen_width//3, self.screen_height))
