@@ -84,7 +84,7 @@ class DurinUI(Durin):
         # Set up the display
         # Get screen size
         info = pygame.display.Info()
-        self.screen_width, self.screen_height = info.current_w, info.current_h-100
+        self.screen_width, self.screen_height = info.current_w, info.current_h-50
 
         self.screen = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
 
@@ -96,6 +96,8 @@ class DurinUI(Durin):
             HWND = pygame.display.get_wm_info()['window']
             SW_MAXIMIZE = 3
             ctypes.windll.user32.ShowWindow(HWND, SW_MAXIMIZE)
+
+        print("width",self.screen_width)
         
         # Durin Image
         resource_file = "durin\durin_birdseye.jpg"
@@ -138,6 +140,8 @@ class DurinUI(Durin):
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                print("hej")
+
                 return False
             
             # Keyboard
@@ -151,13 +155,19 @@ class DurinUI(Durin):
                     self.horizontal = -500
                 elif event.key == pygame.K_RIGHT or event.key == pygame.K_a:
                     self.horizontal = 500
+                elif event.key == pygame.K_q:
+                    self.rot = 500
+                elif event.key == pygame.K_e:
+                    self.rot = -500
 
             elif event.type == pygame.KEYUP:
                 # Key released
                 if event.key == pygame.K_UP or event.key == pygame.K_w or event.key == pygame.K_DOWN or event.key == pygame.K_s:
                     self.vertical = 0
-                elif event.key == pygame.K_LEFT or event.key == pygame.K_d or event.key == pygame.K_RIGHT or event.key == pygame.K_a:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_d or event.key == pygame.K_RIGHT or event.key == pygame.K_a:
                     self.horizontal = 0
+                if event.key == pygame.K_e or event.key == pygame.K_q:
+                    self.rot = 0
 
         if allow_movement:
             self(Move(self.horizontal, self.vertical, self.rot))
@@ -251,7 +261,7 @@ class DurinUI(Durin):
         # Update screen
         pygame.display.update()
 
-        self.clock.tick(25)
+        # self.clock.tick(25)
 
     
     def render_text(self, input_text, position, color="w", size = "small"):
@@ -310,7 +320,7 @@ class DurinUI(Durin):
 
         # Instructions for keyboard shortcuts
         keyboard_instruction = "Use the keys w, a, s, d or arrow keys or a gamepad"
-        keyboard_instruction2 = "to move Durin."
+        keyboard_instruction2 = "to move Durin. Press q or e for rotations."
         self.render_text(keyboard_instruction,INSTR_PLACEMENT)
         self.render_text(keyboard_instruction2,(INSTR_PLACEMENT[0],INSTR_PLACEMENT[1]+d))
 

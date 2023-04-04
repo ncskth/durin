@@ -1,10 +1,11 @@
 from durin import *
 import time
+import sys
 
 
 if __name__ == "__main__":
 
-    # We start a connection to the robot
+    # We start a connectioen to the robot
     # and can now read from and write to the robot via the variable "durin"
     # Notice the UI class, which differs from the (more efficient) standalone Durin interface
     with DurinUI("durin1.local") as durin:
@@ -55,4 +56,4 @@ if __name__ == "__main__":
             # Read user input and quit, if asked
             is_running = durin.read_user_input()
 
-            time.sleep(0.05)
+            time.sleep(0.005)

@@ -12,6 +12,6 @@ module_name = 'durin/examples/dashboard'
 
 stats = pstats.Stats(f'{module_name}.prof')
 stats.strip_dirs()
-stats.sort_stats('time')
+stats.sort_stats('cumtime')
 stats.print_stats(10)
 
