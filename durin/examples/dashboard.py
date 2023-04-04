@@ -12,19 +12,7 @@ if __name__ == "__main__":
         # Loop until the user quits
         is_running = True
 
-        # The sensor frequencies in Hz
-        sensor_frequencies = (["Imu", 50],
-                              ["Position", 50],
-                              ["SystemStatus", 1],
-                              ["Uwb", 50],
-                              ["Tof", 50],
-                              )
 
-        
-        for sensor in sensor_frequencies:
-            durin(SetSensorPeriod(sensor[0],1000/sensor[1]))    # Frequency (Hz) to period (ms)
-
-        
         durin(GetSystemInfo())  # Ask to get IP address, MAC address and Durin ID
         gotSystemInfo = False
 
@@ -41,7 +29,7 @@ if __name__ == "__main__":
             except:
                 pass
 
-
+        
         while is_running:
 
             # Read a value from durin
@@ -57,3 +45,4 @@ if __name__ == "__main__":
             is_running = durin.read_user_input()
 
             time.sleep(0.02)
+

@@ -11,7 +11,7 @@ from durin.actuator import Move
 
 from durin.durin import Durin
 from durin.io.gamepad import Gamepad
-import durin
+from durin import SetSensorPeriod, GetSystemInfo
 
 
 # Constants
@@ -74,6 +74,8 @@ class DurinUI(Durin):
 
     def __enter__(self):
         self.a = 0 # Just for debugging. Delete soon!
+
+        self.set_frequency()
 
         pygame.init()
         self.clock = pygame.time.Clock()
@@ -147,9 +149,9 @@ class DurinUI(Durin):
                     self.vertical = 500
                 elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
                     self.vertical = -500
-                elif event.key == pygame.K_LEFT or event.key == pygame.K_d:
+                elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
                     self.horizontal = -500
-                elif event.key == pygame.K_RIGHT or event.key == pygame.K_a:
+                elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                     self.horizontal = 500
                 elif event.key == pygame.K_q:
                     self.rot = 500
@@ -335,6 +337,16 @@ class DurinUI(Durin):
         self.mac = mac
         self.id = id
 
+    def set_frequency(self):
+        # The sensor frequencies in Hz
+        sensor_frequencies = (["Imu", 50],
+                              ["Position", 50],
+                              ["SystemStatus", 1],
+                              ["Uwb", 50],
+                              ["Tof", 50],
+                              )
 
-
+        
+        for sensor in sensor_frequencies:
+            self(SetSensorPeriod(sensor[0],1000/sensor[1]))    # Frequency (Hz) to period (ms)
 
