@@ -1,1 +1,2 @@
 include durin/io/schema.capnp
+include durin/durin_birdseye.jpg
