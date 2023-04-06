@@ -16,6 +16,7 @@ T = TypeVar("T")
 
 class Observation(NamedTuple):
     tof: np.ndarray = np.zeros((8, 8, 8))
+    tof_status: np.ndarray = np.zeros((8, 8, 8))
     tof_frequency: float = 0
     charge: float = 0
     voltage: float = 0
@@ -46,6 +47,7 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
         context = multiprocessing.get_context("spawn")
 
         self.tof = context.Array("f", 8 * 8 * 8)
+        self.tof_status = context.Array("f", 8 * 8 * 8)
         self.tof_ringbuffer = context.Array("d", self._BUFFER_LENGTH)
         self.tof_ringbuffer_idx = context.Value("i", 0)
 
@@ -70,6 +72,7 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
         super().__init__(
             self.link.buffer,
             self.tof,
+            self.tof_status,
             self.tof_ringbuffer,
             self.tof_ringbuffer_idx,
             self.charge,
@@ -94,12 +97,14 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
 
     def read(self):
         tof = np.frombuffer(self.tof.get_obj(),dtype=np.float32).reshape((8, 8, 8))
+        tof_status = np.frombuffer(self.tof_status.get_obj(),dtype=np.float32).reshape((8, 8, 8))
         imu = np.frombuffer(self.imu.get_obj(),dtype=np.float32).reshape((3, 3))
         uwb = np.frombuffer(self.uwb.get_obj(),dtype=np.float32).reshape((10,2))
         position = np.frombuffer(self.position.get_obj(),dtype=np.float32)
-        
+
         return Observation(
             tof=tof,
+            tof_status=tof_status,
             tof_frequency=self._read_buffer_frequency(self.tof_ringbuffer, self.tof_ringbuffer_idx),
             charge=self.charge.value,
             voltage=self.voltage.value,
@@ -123,6 +128,7 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
         self,
         item,
         tof,
+        tof_status,
         tof_ringbuffer,
         tof_ringbuffer_idx,
         charge,
@@ -144,10 +150,10 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
             if which == "tofObservations":
                 for obs in item.tofObservations.observations:
                     data = np.array(obs.ranges)
+                    status = data >> 14
                     data = data & 0b0011111111111111
-                    # TODO use the status bytes
-                    # status = data & 0b1100000000000000
                     tof.get_obj()[obs.id * 64: (obs.id+1) * 64] = data
+                    tof_status.get_obj()[obs.id * 64: (obs.id+1) * 64] = status
                 self._update_frequency(tof_ringbuffer, tof_ringbuffer_idx)
 
 
@@ -166,7 +172,7 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
                 self._update_frequency(imu_ringbuffer, imu_ringbuffer_idx)
 
 
-            
+
             elif which == "uwbNodes":
                 node_list = item.uwbNodes.nodes
 
@@ -183,7 +189,7 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
                     position.get_obj()[:] = data
             except:
                 pass
-                
+
         except Exception as e:
             logging.warning("Error when receiving sensor data " + str(e))
 
@@ -193,4 +199,3 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
         buffer.append(time.time())
         buffer_obj[:] = buffer.buffer
         buffer_idx.value = buffer.counter
-        
