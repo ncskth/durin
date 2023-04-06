@@ -1,28 +1,45 @@
-from durin import Durin
+from durin import Durin, DurinUI, Move 
 import time
 import sys
 import numpy as np
 
+save = True
+
 time_steps = 10000
-N_sensor_values = 9 + 3 + 1 + 1         # imu + position + voltage + one beacon
-all_stats = np.zeros((time_steps, N_sensor_values), dtype = int)
+N_sensor_values = 9 + 3 + 1 + 2         # imu + position + voltage + one beacon (ID + distance)
+all_stats = np.zeros((time_steps, N_sensor_values), dtype = object)
+headers = ["Acce x","Acce y","Acce z","Gyro x","Gyro y","Gyro z","Magn x","Magn y","Magn z","Position x","Position y","Position z","Voltage","UWB ID","UWB distande"]
+header=','.join(headers)
+print(header)
 
 if __name__ == "__main__":
-    
-    with Durin("durin0.local") as durin:
+    i = 0
 
-        for i in range(time_steps):
+    with Durin("durin1.local") as durin:
+
+        while i < time_steps:
             (obs, dvs, cmd) = durin.read()
+
+            if obs.voltage == 0:
+                # In the "boot" process, all values are 0 in a number of while-iterations.
+                # We do not want to include the 0-values
+                continue
+            
+            print(i, "/", time_steps)
             
             # Collect all relevant sensor data
-            imu_values = [obs.imu[i] for i in range(9)]
-            position = [obs.position[i] for i in range(3)]
-            sensor_values = imu_values + position + obs.voltage + obs.uwb[0]
-            print(sensor_values)
+            imu_values = obs.imu.reshape((9,))
+            position = obs.position.reshape((3,))
+            voltage = np.array([obs.voltage]).reshape((1,))
+            uwb = np.array([obs.uwb[0]]).reshape((2,))
+            sensor_values = np.concatenate([imu_values, position, voltage, uwb])
 
             # Add sensor values to the all_stats array
             for sensor_idx, sensor_value in enumerate(sensor_values):
-                all_stats[sensor_idx, i] = sensor_value
+                all_stats[(i), sensor_idx] = sensor_value
+
+            durin(Move(0,0,0))  # So that Durin does not sleep
+            i += 1
 
 
     
@@ -40,12 +57,16 @@ if __name__ == "__main__":
                             ["Position y mean", "Position y variance"],
                             ["Position z mean", "Position z variance"],
                             ["Voltage mean", "Voltage variance"],
-                            ["UWB mean", "UWB variance"])
+                            ["UWB ID mean", "UWB ID variance"],
+                            ["UWB distande mean", "UWB distande variance"])
+    
 
     for j in range(len(statistic_quantities)):
-        print(statistic_quantities[j][0], np.mean(all_stats[j]), statistic_quantities[j][1], np.var(all_stats[j]))
+        print(statistic_quantities[j][0], np.mean(all_stats[:,j]), statistic_quantities[j][1], np.var(all_stats[:,j]))
 
-
+if save:
+    # Save as a csv file
+    np.savetxt('sensor statistics/stats.csv',all_stats,delimiter=',',header=','.join(headers), fmt='%d')
 
 
 

@@ -8,7 +8,7 @@ if __name__ == "__main__":
     # We start a connectioen to the robot
     # and can now read from and write to the robot via the variable "durin"
     # Notice the UI class, which differs from the (more efficient) standalone Durin interface
-    with DurinUI("durin0.local") as durin:
+    with DurinUI("durin1.local") as durin:
         # Loop until the user quits
         is_running = True
 

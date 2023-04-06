@@ -243,7 +243,7 @@ class DurinUI(Durin):
 
         # Update Durin position ######################
         for m in range(3):
-            self.render_text(str(obs.position[m]), (POSITION_PLACEMENT[0]+2*m, POSITION_PLACEMENT[1]+2*d))
+            self.render_text(str(obs.position[m]), (POSITION_PLACEMENT[0]+2*m*d, POSITION_PLACEMENT[1]+2*d))
 
         # Update movement commands ################
         self.render_text(str(self.horizontal),(MV_CMD_PLACEMENT[0],MV_CMD_PLACEMENT[1]+2*d))
