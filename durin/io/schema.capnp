@@ -53,6 +53,9 @@ struct DurinBase {
         otaUpdate @28 :OtaUpdate;
         enableLogging @29 :EnableLogging;
         otaUpdateBegin @30 :OtaUpdateBegin;
+
+        getSystemInfo @33 :GetSystemInfo;
+        systemInfo @34 :SystemInfo;
     }
 }
 

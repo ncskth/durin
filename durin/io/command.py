@@ -150,7 +150,7 @@ class StreamOn(Command):
         udpOnly = enable_message.destination.init("udpOnly")
         udpOnly.ip = list(map(lambda x: int(x), self.host.split(".")))
         udpOnly.port = self.port
-        return _wrap_base(enable_message, "enableStreaming")
+        return _wrap_base(enable_message, "enableStreaming")   
 
 
 class StreamOff(Command):
@@ -159,3 +159,12 @@ class StreamOff(Command):
 
     def encode(self):
         return _wrap_base(schema.DisableStreaming.new_message(), "disableStreaming")
+
+
+class GetSystemInfo(Command):
+    """ Returns IP address, MAC address, and Durin ID """
+    def __init__(self):
+        self.cmd_id = 20
+
+    def encode(self):
+        return _wrap_base(schema.GetSystemInfo.new_message(), "getSystemInfo")
