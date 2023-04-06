@@ -125,8 +125,8 @@ class SetSensorPeriod(Command):
         """
         if not sensor in self._SUPPORTED_SENSORS:
             raise ValueError(f"Sensor '{sensor}' unsupported. Please choose from {self._SUPPORTED_SENSORS}")
-        
-        
+
+
         self.sensor = sensor
         self.period = period
 
@@ -150,7 +150,7 @@ class StreamOn(Command):
         udpOnly = enable_message.destination.init("udpOnly")
         udpOnly.ip = list(map(lambda x: int(x), self.host.split(".")))
         udpOnly.port = self.port
-        return _wrap_base(enable_message, "enableStreaming")   
+        return _wrap_base(enable_message, "enableStreaming")
 
 
 class StreamOff(Command):
@@ -168,3 +168,11 @@ class GetSystemInfo(Command):
 
     def encode(self):
         return _wrap_base(schema.GetSystemInfo.new_message(), "getSystemInfo")
+
+class EnableTofStatus(Command):
+    """ Enables the 2 bit status in ToF distances """
+
+    def __init__(self, enabled):
+        self.enabled = enabled
+    def encode(self):
+        return _wrap_base(schema.EnableTofStatus.new_message(enabled=self.enabled), "enableTofStatus")

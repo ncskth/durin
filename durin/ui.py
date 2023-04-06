@@ -11,7 +11,7 @@ from durin.actuator import Move
 
 from durin.durin import Durin
 from durin.io.gamepad import Gamepad
-from durin import SetSensorPeriod, GetSystemInfo
+from durin import SetSensorPeriod, GetSystemInfo, EnableTofStatus
 
 
 # Constants
@@ -20,17 +20,17 @@ surface_height = 200
 sleep_interval = 0.02
 
 SENSOR_PLACEMENTS = [
-    (0.45, 0.4),
-    (0.41, 0.03),
-    (0.25, 0.02),
-    (0.41, 0.7),
-    (0.25, 0.78),
-    (0.02, 0.7),
+    (0.25, 0.01),
     (0.02, 0.03),
     (0.02, 0.4),
+    (0.02, 0.7),
+    (0.25, 0.78),
+    (0.41, 0.7),
+    (0.47, 0.4),
+    (0.41, 0.02),
 ]
 
-SENSOR_ROTATIONS = [180, 180+45, -90, 180-45, 90, 45, -45, 0]
+SENSOR_ROTATIONS = [0 - 90, 45 - 90, 90 - 90, 135 - 90, 180 - 90, 225 - 90, 270 - 90, 315 - 90]
 
 # A distance (in % of screen size) constant related to the layout.
 d= 0.02
@@ -53,9 +53,9 @@ POSITION_PLACEMENT = (x,0.1+21*d)
 
 MV_CMD_PLACEMENT = (x+7*d,0.1+21*d)         # Movement command placement
 
-UWB_PLACEMENT = (x, 0.1+25*d)              # Upper left corner
+UWB_PLACEMENT = (x, 0.1+29*d)              # Upper left corner
 
-
+TOF_STATUS_PLACEMENT = (x, 0.1+25*d)
 
 
 class DurinUI(Durin):
@@ -76,6 +76,7 @@ class DurinUI(Durin):
         self.a = 0 # Just for debugging. Delete soon!
 
         self.set_frequency()
+        self(EnableTofStatus(True))
 
         pygame.init()
         self.clock = pygame.time.Clock()
@@ -233,6 +234,24 @@ class DurinUI(Durin):
             for xyz in range(3):
                 self.render_text(str(imu[type][xyz]), (IMU_PLACEMENT[0]+(xyz+1)*3*d, IMU_PLACEMENT[1]+(type+1)*d))
 
+        # Update ToF status ###################
+        summed_status = [0] * 8
+        for i in range(8):
+            tot = 0
+            for v in obs.tof_status[i].flat:
+                if v != 0 and v != 3:
+                    tot += 1
+            summed_status[i] = tot
+
+        self.render_text(f"ToF: reported faulty pixels", (TOF_STATUS_PLACEMENT[0], TOF_STATUS_PLACEMENT[1]), "o")
+        self.render_text(f"0: {summed_status[0]}", (TOF_STATUS_PLACEMENT[0] + 0 * d * 2, TOF_STATUS_PLACEMENT[1] + d))
+        self.render_text(f"1: {summed_status[1]}", (TOF_STATUS_PLACEMENT[0] + 1 * d * 2, TOF_STATUS_PLACEMENT[1] + d))
+        self.render_text(f"2: {summed_status[2]}", (TOF_STATUS_PLACEMENT[0] + 2 * d * 2, TOF_STATUS_PLACEMENT[1] + d))
+        self.render_text(f"3: {summed_status[3]}", (TOF_STATUS_PLACEMENT[0] + 3 * d * 2, TOF_STATUS_PLACEMENT[1] + d))
+        self.render_text(f"4: {summed_status[4]}", (TOF_STATUS_PLACEMENT[0] + 0 * d * 2, TOF_STATUS_PLACEMENT[1] + d + d))
+        self.render_text(f"5: {summed_status[5]}", (TOF_STATUS_PLACEMENT[0] + 1 * d * 2, TOF_STATUS_PLACEMENT[1] + d + d))
+        self.render_text(f"6: {summed_status[6]}", (TOF_STATUS_PLACEMENT[0] + 2 * d * 2, TOF_STATUS_PLACEMENT[1] + d + d))
+        self.render_text(f"7: {summed_status[7]}", (TOF_STATUS_PLACEMENT[0] + 3 * d * 2, TOF_STATUS_PLACEMENT[1] + d + d))
 
         # Update battery level and voltage ######################
         voltage = obs.voltage
@@ -346,7 +365,7 @@ class DurinUI(Durin):
                               ["Tof", 50],
                               )
 
-        
+
         for sensor in sensor_frequencies:
             self(SetSensorPeriod(sensor[0],1000/sensor[1]))    # Frequency (Hz) to period (ms)
 
