@@ -1,0 +1,75 @@
+# Acce x
+Mean: 5.2936
+Standard deviation: 32.62942639683846
+Standard deviation in %: 6.163938793418177
+
+Acce y
+Mean: -143.2828
+Standard deviation: 31.258780131245192
+Standard deviation in %: -0.21816142713043848
+
+Acce z
+Mean: -8008.4264
+Standard deviation: 30.850759471624
+Standard deviation in %: -0.0038522873197191394
+
+Gyro x
+Mean: -68.0133
+Standard deviation: 13.183554290113573
+Standard deviation in %: -0.19383788597397233
+
+Gyro y
+Mean: 85.6897
+Standard deviation: 11.795292569609297
+Standard deviation in %: 0.13765122960646725
+
+Gyro z
+Mean: 27.4646
+Standard deviation: 12.49278006671772
+Standard deviation in %: 0.4548684512688231
+
+Magn x
+Mean: -7403.2416
+Standard deviation: 1362.016897190436
+Standard deviation in %: -0.1839757461367242
+
+Magn y
+Mean: -11211.9552
+Standard deviation: 1430.4718199795952
+Standard deviation in %: -0.12758451086029984
+
+Magn z
+Mean: -13850.2704
+Standard deviation: 1366.2747954805857
+Standard deviation in %: -0.0986460737604506
+
+Position x
+Mean: 2353.3787
+Standard deviation: 35.61780101416858
+Standard deviation in %: 0.01513475116187997
+
+Position y
+Mean: 1463.3035
+Standard deviation: 44.52184865041798
+Standard deviation in %: 0.030425573813236954
+
+Position z
+Mean: -87.8992
+Standard deviation: 59.110725313979316
+Standard deviation in %: -0.6724830864669908
+
+Voltage
+Mean: 7318.9402
+Standard deviation: 2.0282098815291163
+Standard deviation in %: 0.0002771179742019365
+
+UWB ID
+Mean: 32.9199
+Standard deviation: 1.728636112164972
+Standard deviation in %: 0.05251036947757958
+
+UWB distande
+Mean: 2362.8532
+Standard deviation: 125.65933421989655
+Standard deviation in %: 0.05318118544981827
+

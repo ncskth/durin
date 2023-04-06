@@ -102,7 +102,6 @@ class TCPLink:
         try:
             self.buffer_send.put(command, block=False, timeout=timeout)
         except Full:
-            print("hej")
             return None
 
     def read(self) -> Optional[ByteString]:

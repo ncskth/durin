@@ -144,6 +144,9 @@ class DurinSensor(RunnableConsumer, Sensor[Observation]):
             if which == "tofObservations":
                 for obs in item.tofObservations.observations:
                     data = np.array(obs.ranges)
+                    data = data & 0b0011111111111111
+                    # TODO use the status bytes
+                    # status = data & 0b1100000000000000
                     tof.get_obj()[obs.id * 64: (obs.id+1) * 64] = data
                 self._update_frequency(tof_ringbuffer, tof_ringbuffer_idx)
 
