@@ -15,7 +15,7 @@ from durin import SetSensorPeriod, GetSystemInfo, EnableTofStatus
 
 
 # Constants
-surface_width = 200
+surface_width = 300
 surface_height = 200
 sleep_interval = 0.02
 
@@ -24,9 +24,9 @@ SENSOR_PLACEMENTS = [
     (0.02, 0.03),
     (0.02, 0.4),
     (0.02, 0.7),
-    (0.25, 0.78),
+    (0.25, 0.76),
     (0.41, 0.7),
-    (0.47, 0.4),
+    (0.45, 0.4),
     (0.41, 0.02),
 ]
 
@@ -190,24 +190,33 @@ class DurinUI(Durin):
 
         for o in range(len(self.surfaces)):
             surface = self.surfaces[o]
-
-            square_size = surface_width//8
+            square_size = math.ceil(min(surface_width, surface_height) / 8)
             for i in range(8):
                 for j in range(8):
-
                     left = i * square_size
                     top = j * square_size
                     square_rect = pygame.Rect(left, top, square_size, square_size)
-
                     color_value = tofs[o][i][j]
                     color = (color_value, color_value, color_value)
                     pygame.draw.rect(surface, color, square_rect)
 
+                    status_left = i * square_size // 2 + surface_height
+                    status_top = j * square_size // 2 + surface_height / 4
+                    status_rect = pygame.Rect(status_left, status_top, math.ceil(square_size / 2), math.ceil(square_size / 2))
+                    status_color = (0, 0, 0)
+                    if obs.tof_status[o][i][j] == 0: # all good
+                        status_color = (0, 255, 0)
+                    elif obs.tof_status[o][i][j] == 1: # 50% error
+                        status_color = (255, 255, 0)
+                    elif obs.tof_status[o][i][j] == 2: # 100% error
+                        status_color = (255, 0, 0)
+                    elif obs.tof_status[o][i][j] == 3: # not updated
+                        status_color = (0, 0, 255)
+                    pygame.draw.rect(surface, status_color, status_rect)
 
             rotation_angle = SENSOR_ROTATIONS[o]
             rotated_surface = pygame.transform.rotate(surface, rotation_angle)
             rotated_surfaces.append(rotated_surface)
-
 
         for i in range(8):
             self.screen.blit(rotated_surfaces[i], (SENSOR_PLACEMENTS[i][0]*self.screen_width,SENSOR_PLACEMENTS[i][1]*self.screen_height))
