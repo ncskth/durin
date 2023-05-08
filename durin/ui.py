@@ -60,6 +60,7 @@ TOF_STATUS_PLACEMENT = (x, 0.1+25*d)
 
 class DurinUI(Durin):
     def __init__(self, *args, **kwargs):
+        self.debug = kwargs.pop("debug", False)
         super().__init__(*args, **kwargs)
         self.gamepad = Gamepad()
 
@@ -200,6 +201,8 @@ class DurinUI(Durin):
                     color = (color_value, color_value, color_value)
                     pygame.draw.rect(surface, color, square_rect)
 
+                    if not self.debug:
+                        continue
                     status_left = i * square_size // 2 + surface_height
                     status_top = j * square_size // 2 + surface_height / 4
                     status_rect = pygame.Rect(status_left, status_top, math.ceil(square_size / 2), math.ceil(square_size / 2))
