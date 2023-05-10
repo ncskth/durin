@@ -119,9 +119,7 @@ class DurinUI(Durin):
             self.surfaces.append(surface)
 
         pygame.display.update()
-
-
-
+        self.gamepad.start()
 
         return super().__enter__()
 
