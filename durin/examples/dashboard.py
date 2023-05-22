@@ -8,13 +8,7 @@ if __name__ == "__main__":
     # We start a connectioen to the robot
     # and can now read from and write to the robot via the variable "durin"
     # Notice the UI class, which differs from the (more efficient) standalone Durin interface
-    # the debug flag enables/disables some ugly data on the dashboard
-    if len(sys.argv) == 2:
-        debug = (sys.argv[1] == "debug")
-    else:
-        debug = False
-
-    with DurinUI("durin1.local", debug=debug) as durin:
+    with DurinUI("durin1.local") as durin:
         # Loop until the user quits
         is_running = True
         durin(GetSystemInfo())  # Ask to get IP address, MAC address and Durin ID

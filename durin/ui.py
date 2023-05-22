@@ -60,13 +60,13 @@ TOF_STATUS_PLACEMENT = (x, 0.1+25*d)
 
 class DurinUI(Durin):
     def __init__(self, *args, **kwargs):
-        self.debug = kwargs.pop("debug", False)
         super().__init__(*args, **kwargs)
         self.gamepad = Gamepad()
 
         self.ip = None
         self.mac = None
         self.id = None
+        self.debug = False
 
         self.vertical = 0
         self.horizontal = 0
@@ -157,6 +157,8 @@ class DurinUI(Durin):
                     self.rot = 500
                 elif event.key == pygame.K_e:
                     self.rot = -500
+                elif event.key == pygame.K_g:
+                    self.debug = not self.debug
 
             elif event.type == pygame.KEYUP:
                 # Key released
@@ -189,6 +191,7 @@ class DurinUI(Durin):
 
         for o in range(len(self.surfaces)):
             surface = self.surfaces[o]
+            surface.fill((0, 0, 0, 0))
             square_size = math.ceil(min(surface_width, surface_height) / 8)
             for i in range(8):
                 for j in range(8):
@@ -249,7 +252,7 @@ class DurinUI(Durin):
         for i in range(8):
             tot = 0
             for v in obs.tof_status[i].flat:
-                if v != 0 and v != 3:
+                if v != 0:
                     tot += 1
             summed_status[i] = tot
 
