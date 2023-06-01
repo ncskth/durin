@@ -17,7 +17,6 @@ class Gamepad(RunnableProducer):
         self.queue = context.Queue(maxsize=1)
         self.timeout = timeout
         self.values = multiprocessing.Array("f", 3)
-        self.tau = 0.99
 
         super().__init__(self.queue, self.values)
 

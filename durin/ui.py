@@ -81,8 +81,8 @@ class DurinUI(Durin):
 
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont(None, 22)
-        self.big_font = pygame.font.SysFont(None, 34)
+        self.font = pygame.font.SysFont(None, 40)
+        self.big_font = pygame.font.SysFont(None, 60)
 
 
         # Set up the display
@@ -136,7 +136,11 @@ class DurinUI(Durin):
             x, y, r = self.gamepad.queue.get()
             self.horizontal = x
             self.vertical = y
-            self.rot = r
+            self.rot = -r
+        # else:
+        #     self.horizontal = self.horizontal - 0.1 * self.horizontal
+        #     self.vertical = self.vertical - 0.1 * self.vertical
+        #     self.rot = self.rot - 0.1 * self.rot
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
@@ -278,9 +282,9 @@ class DurinUI(Durin):
             self.render_text(str(obs.position[m]), (POSITION_PLACEMENT[0]+2*m*d, POSITION_PLACEMENT[1]+2*d))
 
         # Update movement commands ################
-        self.render_text(str(self.horizontal),(MV_CMD_PLACEMENT[0],MV_CMD_PLACEMENT[1]+2*d))
-        self.render_text(str(self.vertical),(MV_CMD_PLACEMENT[0]+2*d,MV_CMD_PLACEMENT[1]+2*d))
-        self.render_text(str(self.rot),(MV_CMD_PLACEMENT[0]+4*d,MV_CMD_PLACEMENT[1]+2*d))
+        self.render_text(f"{self.horizontal:.0f}",(MV_CMD_PLACEMENT[0],MV_CMD_PLACEMENT[1]+2*d))
+        self.render_text(f"{self.vertical:.0f}",(MV_CMD_PLACEMENT[0]+2*d,MV_CMD_PLACEMENT[1]+2*d))
+        self.render_text(f"{self.rot:.0f}",(MV_CMD_PLACEMENT[0]+4*d,MV_CMD_PLACEMENT[1]+2*d))
 
         self.render_static_texts()
 
