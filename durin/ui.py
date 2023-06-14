@@ -61,7 +61,7 @@ TOF_STATUS_PLACEMENT = (x, 0.1+25*d)
 class DurinUI(Durin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.gamepad = Gamepad()
+        # self.gamepad = Gamepad()
 
         self.ip = None
         self.mac = None
@@ -81,19 +81,30 @@ class DurinUI(Durin):
 
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont(None, 40)
-        self.big_font = pygame.font.SysFont(None, 60)
+
+        # Gamepad
+        pygame.joystick.init()
+
+        if pygame.joystick.get_count() == 0:
+            print("No gamepad found.")
+            return
+
+        self.gamepad = pygame.joystick.Joystick(0)
+        self.gamepad.init()
+
+        print("Gamepad found:", self.gamepad.get_name())
 
 
         # Set up the display
-        # Get screen size
-        info = pygame.display.Info()
+        info = pygame.display.Info() # Get screen size
         self.screen_width, self.screen_height = info.current_w, info.current_h-50
+        print("WIDTH", self.screen_width)
+
+        self.font = pygame.font.SysFont(None, round(self.screen_width/70))
+        self.big_font = pygame.font.SysFont(None, 60)
+
 
         self.screen = pygame.display.set_mode((0, 0), pygame.RESIZABLE)
-
-        # Buffer screen:
-        #self.back_buffer = pygame.Surface((self.screen_width, self.screen_height))
 
         # Make it fullscreen
         if sys.platform == "win32":
@@ -119,24 +130,24 @@ class DurinUI(Durin):
             self.surfaces.append(surface)
 
         pygame.display.update()
-        self.gamepad.start()
+        # self.gamepad.start()
 
         return super().__enter__()
 
     def __exit__(self, e, b, t):
         pygame.quit()
-        self.gamepad.stop()
+        # self.gamepad.stop()
         return super().__exit__(e, b, t)
 
     def read_user_input(self, allow_movement: bool = True, sleep_interval: float=0.02):
         keys = pygame.key.get_pressed()
 
-        # Gamepad
-        if not self.gamepad.queue.empty():
-            x, y, r = self.gamepad.queue.get()
-            self.horizontal = x
-            self.vertical = y
-            self.rot = -r
+        # # Gamepad
+        # if not self.gamepad.queue.empty():
+        #     x, y, r = self.gamepad.queue.get()
+        #     self.horizontal = x
+        #     self.vertical = y
+        #     self.rot = -r
         # else:
         #     self.horizontal = self.horizontal - 0.1 * self.horizontal
         #     self.vertical = self.vertical - 0.1 * self.vertical
@@ -173,6 +184,21 @@ class DurinUI(Durin):
                 if event.key == pygame.K_e or event.key == pygame.K_q:
                     self.rot = 0
 
+            # Gamepad
+            if event.type == pygame.JOYAXISMOTION: 
+                if event.axis == 2:
+                    self.vertical = event.value * 500/0.8
+                elif event.axis == 3:
+                    self.horizontal = event.value * 500/0.8
+                elif event.axis == 0:
+                    self.rot = event.value * -500/0.8
+
+                # If the input is close to 0, round to 0. It is very difficult to have the joystick exactly in the middle.
+                self.vertical = 0 if abs(self.vertical) < 50 else self.vertical
+                self.horizontal = 0 if abs(self.horizontal) < 50 else self.horizontal 
+                self.rot = 0 if abs(self.rot) < 50 else self.rot 
+
+              
         if allow_movement:
             self(Move(self.horizontal, self.vertical, self.rot))
 
