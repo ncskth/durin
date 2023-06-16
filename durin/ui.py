@@ -87,18 +87,18 @@ class DurinUI(Durin):
 
         if pygame.joystick.get_count() == 0:
             print("No gamepad found.")
-            return
+            gamepad_found = False
+        else:
+            gamepad_found = True
+            self.gamepad = pygame.joystick.Joystick(0)
+            self.gamepad.init()
+            print("Gamepad found:", self.gamepad.get_name())
 
-        self.gamepad = pygame.joystick.Joystick(0)
-        self.gamepad.init()
-
-        print("Gamepad found:", self.gamepad.get_name())
 
 
         # Set up the display
         info = pygame.display.Info() # Get screen size
         self.screen_width, self.screen_height = info.current_w, info.current_h-50
-        print("WIDTH", self.screen_width)
 
         self.font = pygame.font.SysFont(None, round(self.screen_width/70))
         self.big_font = pygame.font.SysFont(None, 60)
@@ -186,11 +186,11 @@ class DurinUI(Durin):
 
             # Gamepad
             if event.type == pygame.JOYAXISMOTION: 
-                if event.axis == 2:
+                if event.axis == 1:
                     self.vertical = event.value * 500/0.8
-                elif event.axis == 3:
-                    self.horizontal = event.value * 500/0.8
                 elif event.axis == 0:
+                    self.horizontal = event.value * 500/0.8
+                elif event.axis == 3:
                     self.rot = event.value * -500/0.8
 
                 # If the input is close to 0, round to 0. It is very difficult to have the joystick exactly in the middle.
