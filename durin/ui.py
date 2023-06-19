@@ -1,10 +1,8 @@
 import pygame
 import math
 import os
-import random
 import sys
 import ctypes
-import time
 
 import numpy as np
 from durin.actuator import Move
@@ -61,7 +59,6 @@ TOF_STATUS_PLACEMENT = (x, 0.1+25*d)
 class DurinUI(Durin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.gamepad = Gamepad()
 
         self.ip = None
         self.mac = None
@@ -74,7 +71,6 @@ class DurinUI(Durin):
         self.rot = 0
 
     def __enter__(self):
-        self.a = 0 # Just for debugging. Delete soon!
 
         self.set_frequency()
         self(EnableTofStatus(True))
@@ -130,28 +126,15 @@ class DurinUI(Durin):
             self.surfaces.append(surface)
 
         pygame.display.update()
-        # self.gamepad.start()
 
         return super().__enter__()
 
     def __exit__(self, e, b, t):
         pygame.quit()
-        # self.gamepad.stop()
         return super().__exit__(e, b, t)
 
     def read_user_input(self, allow_movement: bool = True, sleep_interval: float=0.02):
         keys = pygame.key.get_pressed()
-
-        # # Gamepad
-        # if not self.gamepad.queue.empty():
-        #     x, y, r = self.gamepad.queue.get()
-        #     self.horizontal = x
-        #     self.vertical = y
-        #     self.rot = -r
-        # else:
-        #     self.horizontal = self.horizontal - 0.1 * self.horizontal
-        #     self.vertical = self.vertical - 0.1 * self.vertical
-        #     self.rot = self.rot - 0.1 * self.rot
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
@@ -207,13 +190,26 @@ class DurinUI(Durin):
         return True
 
 
-    def render_sensors(self, obs, size: int = 180):
+    def render_sensors(self, obs):
 
         self.screen.fill((0,0,0))   # Fill screen with black
         self.screen.blit(self.image_surface, (0,0))
 
+        self.update_tof(obs)
+        self.update_tof_status(obs)
+        self.update_uwb(obs)
+        self.update_battery(obs)
+        self.update_imu(obs)
+        self.update_position(obs)
+        self.update_movement_commands()
 
-        # Update ToF-sensors ######################
+        self.render_static_texts()
+
+        # Update screen
+        pygame.display.update()
+
+    def update_tof(self, obs):
+        """ Update ToF-sensors """
         tofs = (np.tanh((obs.tof / 1000)) * 255).astype(np.int32)
 
         # Rotated surfaces
@@ -255,11 +251,8 @@ class DurinUI(Durin):
         for i in range(8):
             self.screen.blit(rotated_surfaces[i], (SENSOR_PLACEMENTS[i][0]*self.screen_width,SENSOR_PLACEMENTS[i][1]*self.screen_height))
 
-        # Update UWB ######################
-
+    def update_uwb(self, obs):
         uwb = obs.uwb
-        #self.render_text("Becon ID\t\t\tDistance (mm)", UWB_PLACEMENT[0])
-
 
         for i in range(10):
             if uwb[i][0] != 0:
@@ -268,16 +261,16 @@ class DurinUI(Durin):
             else:
                 break
 
-
-
-        # Update IMU ######################
+    def update_imu (self, obs):
         imu = obs.imu
-        #type = ["Acce", "Gyro", "Magn."]
+        # type = ["Acce", "Gyro", "Magn."]
         for type in range(3):
             for xyz in range(3):
                 self.render_text(str(imu[type][xyz]), (IMU_PLACEMENT[0]+(xyz+1)*3*d, IMU_PLACEMENT[1]+(type+1)*d))
 
-        # Update ToF status ###################
+    def update_tof_status(self, obs):
+        """ Updates the status (debugging data) of the tof-sensors """
+        
         summed_status = [0] * 8
         for i in range(8):
             tot = 0
@@ -296,33 +289,22 @@ class DurinUI(Durin):
         self.render_text(f"6: {summed_status[6]}", (TOF_STATUS_PLACEMENT[0] + 2 * d * 2, TOF_STATUS_PLACEMENT[1] + d + d))
         self.render_text(f"7: {summed_status[7]}", (TOF_STATUS_PLACEMENT[0] + 3 * d * 2, TOF_STATUS_PLACEMENT[1] + d + d))
 
-        # Update battery level and voltage ######################
+    def update_battery(self, obs):
         voltage = obs.voltage
         charge = obs.charge
         self.render_text(str(charge) + " %", BATTERY_PLACEMENT)
         self.render_text(str(voltage) + " mV", (BATTERY_PLACEMENT[0]+5*d,BATTERY_PLACEMENT[1]))
 
-
-        # Update Durin position ######################
+    def update_position(self, obs):
+        # Update Durin position
         for m in range(3):
             self.render_text(str(obs.position[m]), (POSITION_PLACEMENT[0]+2*m*d, POSITION_PLACEMENT[1]+2*d))
 
-        # Update movement commands ################
+    def update_movement_commands(self):
+        # Update movement commands
         self.render_text(f"{self.horizontal:.0f}",(MV_CMD_PLACEMENT[0],MV_CMD_PLACEMENT[1]+2*d))
         self.render_text(f"{self.vertical:.0f}",(MV_CMD_PLACEMENT[0]+2*d,MV_CMD_PLACEMENT[1]+2*d))
         self.render_text(f"{self.rot:.0f}",(MV_CMD_PLACEMENT[0]+4*d,MV_CMD_PLACEMENT[1]+2*d))
-
-        self.render_static_texts()
-
-        # Just for debugging.
-        self.a += 1
-        #self.render_text("Time step (for debugging): " + str(self.a),(UWB_PLACEMENT[0],UWB_PLACEMENT[1]+10*d))
-
-        # Update screen
-        pygame.display.update()
-
-        # self.clock.tick(25)
-
 
     def render_text(self, input_text, position, color="w", size = "small"):
         if color == "w":
