@@ -139,6 +139,26 @@ class SetSensorPeriod(Command):
         return _wrap_base(message, message_type[0].lower() + message_type[1:])
 
 
+class GetPosition(Command):
+    """Request the current UWB position estimate."""
+
+    def __init__(self):
+        self.cmd_id = 21
+
+    def encode(self):
+        return _wrap_base(schema.GetPosition.new_message(), "getPosition")
+
+
+class GetUwbNodes(Command):
+    """Request the current UWB node list."""
+
+    def __init__(self):
+        self.cmd_id = 22
+
+    def encode(self):
+        return _wrap_base(schema.GetUwbNodes.new_message(), "getUwbNodes")
+
+
 class StreamOn(Command):
     def __init__(self, host, port):
         self.cmd_id = 18
