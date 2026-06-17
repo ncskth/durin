@@ -379,4 +379,5 @@ struct SystemInfo {
     hostname @2 :Text;
     id @3 :UInt8;
     uptimeMs @4 :UInt32;
+    firmwareVersion @5 :Text;
 }
